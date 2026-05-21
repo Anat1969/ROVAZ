@@ -1,2464 +1,1670 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ניהול בקשות תוכנית רובע ז' — אשדוד</title>
-    
-    <!-- Leaflet Maps -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --primary: #1a3a52;
-            --secondary: #e74c3c;
-            --accent: #3498db;
-            --gold: #d4af37;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --light-bg: #f5f7fa;
-            --border: #ddd;
-            --text-dark: #2c3e50;
-            --text-light: #7f8c8d;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--light-bg);
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* HEADER */
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        
-        header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מערכת ניהול בקשות — רובע ז׳</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --primary:#1a3a52;
+  --accent:#2980b9;
+  --border:#dde2e8;
+  --light-bg:#f4f6f9;
+  --text-dark:#2c3e50;
+  --text-light:#7f8c8d;
+  --green:#155724;
+  --green-bg:#d4edda;
+  --amber:#7d5900;
+  --amber-bg:#fff3cd;
+  --red:#721c24;
+  --red-bg:#f8d7da;
+  --card-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--light-bg);color:var(--text-dark);font-size:14px;line-height:1.5;}
+.container{max-width:1300px;margin:0 auto;padding:16px;}
 
-        .card h2 {
-            position: relative;
-            margin-bottom: 20px;
-            padding-right: 18px;
-            font-size: 24px;
-            letter-spacing: 0.02em;
-        }
+/* HEADER */
+header{background:var(--primary);color:white;padding:14px 20px;margin-bottom:18px;border-radius:4px;}
+header h1{font-size:20px;font-weight:600;}
+header p{font-size:12px;opacity:0.8;margin-top:2px;}
 
-        .card h2::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 6px;
-            height: 28px;
-            border-radius: 4px;
-            background: var(--gold);
-            box-shadow: 0 0 0 1px rgba(212,175,55,0.15);
-        }
-        
-        /* NAVIGATION */
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 3px solid var(--border);
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .nav-tabs button {
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            padding: 15px 25px;
-            font-size: 16px;
-            cursor: pointer;
-            color: var(--text-light);
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        
-        .nav-tabs button:hover {
-            color: var(--primary);
-        }
-        
-        .nav-tabs button.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        /* ROLE SWITCH */
-        .role-switch {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        
-        .role-switch label {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        
-        .role-switch button {
-            padding: 10px 20px;
-            border: 2px solid var(--border);
-            background: white;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .role-switch button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        /* MAIN CONTENT */
-        .page {
-            display: none;
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        /* FORMS */
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-dark);
-            font-size: 15px;
-        }
-        
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: inherit;
-            direction: rtl;
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-        
-        /* BUTTONS */
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #0f2436;
-        }
-        
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #c0392b;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #229954;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .btn-warning:hover {
-            background: #d68910;
-        }
-        
-        .btn-light {
-            background: white;
-            color: var(--text-dark);
-            border: 2px solid var(--border);
-        }
-        
-        .btn-light:hover {
-            background: var(--light-bg);
-        }
-        
-        /* CARD */
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-        }
-        
-        .card h2 {
-            margin-bottom: 20px;
-            color: var(--primary);
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px;
-        }
-        
-        .card h3 {
-            margin-bottom: 15px;
-            color: var(--text-dark);
-            margin-top: 20px;
-        }
-        
-        .card p {
-            margin-bottom: 10px;
-        }
-        
-        /* CHECKLIST */
-        .checklist {
-            list-style: none;
-        }
-        
-        .checklist-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            border-right: 4px solid var(--accent);
-        }
-        
-        .checklist-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-top: 2px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        
-        .checklist-item label {
-            cursor: pointer;
-            flex: 1;
-        }
-        
-        .checklist-item.checked {
-            background: #f0f8ff;
-            border-right-color: var(--success);
-        }
-        
-        .checklist-item.checked input[type="checkbox"] {
-            accent-color: var(--success);
-        }
-        
-        /* TABLE */
-        .table-wrapper {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        
-        thead {
-            background: var(--primary);
-            color: white;
-        }
-        
-        th {
-            padding: 15px;
-            text-align: right;
-            font-weight: 600;
-        }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        tbody tr:hover {
-            background: var(--light-bg);
-        }
+/* ROLE SWITCH */
+.role-switch{display:flex;gap:8px;align-items:center;margin-bottom:12px;justify-content:center;}
+.role-switch label{font-weight:600;font-size:13px;}
+.role-switch button{padding:7px 18px;border:2px solid var(--border);background:white;cursor:pointer;border-radius:4px;font-size:13px;transition:all .2s;}
+.role-switch button.active{background:var(--primary);color:white;border-color:var(--primary);}
 
-        .table-wrapper {
-            overflow-x: auto;
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 8px;
-            background: white;
-        }
+/* NAV */
+.nav-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);flex-wrap:wrap;}
+.nav-tabs button{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:9px 18px;font-size:13px;cursor:pointer;color:var(--text-light);transition:all .2s;font-weight:500;}
+.nav-tabs button:hover{color:var(--primary);}
+.nav-tabs button.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
 
-        #requestsTable {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 720px;
-        }
+/* EDITOR TOOLBAR */
+.editor-toolbar-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:white;border:1px solid var(--border);border-radius:4px;padding:10px 16px;margin-bottom:14px;}
 
-        #requestsTable th {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
+/* CARD */
+.card{background:white;padding:20px;border-radius:4px;box-shadow:var(--card-shadow);border:1px solid var(--border);margin-bottom:16px;}
+.card h2{font-size:17px;color:var(--primary);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.card h3{font-size:15px;color:var(--text-dark);margin:16px 0 10px;}
 
-        #requestsTable th.sortable {
-            color: var(--text-dark);
-        }
+/* PAGE */
+.page{display:none;}.page.active{display:block;}
+.hidden{display:none!important;}
 
-        #requestsTable th.sortable::after {
-            content: '⏺';
-            position: absolute;
-            left: 12px;
-            color: var(--gold);
-            opacity: 0.4;
-            font-size: 12px;
-        }
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;margin-bottom:5px;font-weight:600;font-size:13px;color:var(--text-dark);}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;direction:rtl;background:white;
+}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(41,128,185,.12);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
-        #requestsTable th.sorted-asc::after {
-            content: '▲';
-            left: 12px;
-            opacity: 1;
-        }
+/* BUTTONS */
+.btn{padding:8px 18px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:white;}
+.btn-primary:hover{background:#0f2436;}
+.btn-success{background:#1a7340;color:white;}
+.btn-success:hover{background:#145c34;}
+.btn-warning{background:#e67e22;color:white;}
+.btn-warning:hover{background:#ca6f1e;}
+.btn-danger{background:#c0392b;color:white;}
+.btn-danger:hover{background:#a93226;}
+.btn-light{background:white;color:var(--text-dark);border:1px solid var(--border);}
+.btn-light:hover{background:var(--light-bg);}
+.btn-sm{padding:5px 12px;font-size:12px;}
 
-        #requestsTable th.sorted-desc::after {
-            content: '▼';
-            left: 12px;
-            opacity: 1;
-        }
+/* STATUS BADGES — traffic light */
+.badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:12px;font-weight:700;}
+.badge-pending{background:var(--amber-bg);color:var(--amber);}
+.badge-approved{background:var(--green-bg);color:var(--green);}
+.badge-rejected{background:var(--red-bg);color:var(--red);}
 
-        .editor-panel {
-            margin-top: 25px;
-            background: #fff9eb;
-            border: 1px solid rgba(212,175,55,0.25);
-            border-radius: 10px;
-            padding: 18px;
-        }
+/* TABLE */
+.table-wrapper{overflow-x:auto;border:1px solid var(--border);border-radius:4px;}
+table{width:100%;border-collapse:collapse;min-width:600px;}
+thead{background:var(--primary);color:white;}
+th{padding:10px 12px;text-align:right;font-size:13px;font-weight:600;}
+td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;}
+tbody tr:hover{background:var(--light-bg);}
+tbody tr.row-pending td:first-child{border-right:3px solid #e67e22;}
+tbody tr.row-approved td:first-child{border-right:3px solid #1a7340;}
+tbody tr.row-rejected td:first-child{border-right:3px solid #c0392b;}
+th.sortable{cursor:pointer;user-select:none;}
+th.sorted-asc::after{content:' ▲';font-size:10px;}
+th.sorted-desc::after{content:' ▼';font-size:10px;}
 
-        .editor-panel h3 {
-            margin-bottom: 12px;
-            color: var(--text-dark);
-        }
+/* MAP */
+#map{width:100%;height:460px;border-radius:4px;border:1px solid var(--border);}
 
-        .editor-list {
-            display: grid;
-            gap: 10px;
-        }
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--accent);border-radius:4px;cursor:pointer;transition:all .2s;background:#fafbfc;min-height:80px;position:relative;overflow:hidden;}
+.upload-zone:hover{background:#f0f8ff;border-color:var(--primary);}
+.upload-zone .zone-prompt{padding:24px;text-align:center;}
+.upload-zone .zone-prompt p{color:var(--text-dark);margin-bottom:4px;font-size:13px;}
+.upload-zone .zone-prompt small{color:var(--text-light);font-size:11px;}
+.upload-zone .zone-content{position:relative;}
+.upload-zone .zone-content img{width:100%;max-height:220px;object-fit:cover;display:block;}
+.upload-zone .zone-content .file-display{padding:14px 16px;display:flex;align-items:center;gap:12px;background:#f9f9f9;}
+.upload-zone .zone-content .file-display .file-icon{font-size:22px;}
+.upload-zone .zone-content .file-display .file-name{flex:1;font-size:13px;color:var(--text-dark);word-break:break-all;}
+.zone-remove{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;}
+.zone-remove:hover{background:rgba(0,0,0,.75);}
 
-        .editor-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
-            background: white;
-            border: 1px solid rgba(0,0,0,0.06);
-            border-radius: 8px;
-            font-size: 14px;
-        }
+/* CHECKLIST */
+.checklist{list-style:none;}
+.checklist-item{padding:10px 12px;margin-bottom:8px;background:white;border:1px solid var(--border);border-radius:4px;border-right:3px solid var(--accent);}
+.checklist-item.checked{border-right-color:#1a7340;background:#fafffe;}
+.checklist-item .item-row{display:flex;align-items:flex-start;gap:10px;}
+.checklist-item input[type="checkbox"]{width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer;}
+.checklist-item label{cursor:pointer;flex:1;font-size:13px;}
+.checklist-item.checked label{color:#155724;}
+.checklist-note-input{margin-top:6px;margin-right:26px;width:calc(100% - 26px);padding:5px 8px;border:1px solid #e0e0e0;border-radius:3px;font-size:12px;color:var(--text-light);background:#fafafa;}
+.checklist-note-input:focus{outline:none;border-color:var(--accent);background:white;}
 
-        .editor-item span:first-child {
-            font-weight: 600;
-            color: var(--primary);
-        }
+/* ALERTS */
+.alert{padding:10px 14px;border-radius:4px;margin-bottom:14px;font-size:13px;border-right:4px solid;}
+.alert-info{background:#d1ecf1;color:#0c5460;border-right-color:#17a2b8;}
+.alert-success{background:var(--green-bg);color:var(--green);border-right-color:#1a7340;}
+.alert-warning{background:var(--amber-bg);color:var(--amber);border-right-color:#e67e22;}
+.alert-danger{background:var(--red-bg);color:var(--red);border-right-color:#c0392b;}
 
-        .editor-item span:last-child {
-            color: var(--text-light);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        tbody tr.status-pending td {
-            border-right: 4px solid var(--warning);
-        }
-        
-        tbody tr.status-approved td {
-            border-right: 4px solid var(--success);
-        }
-        
-        tbody tr.status-rejected td {
-            border-right: 4px solid var(--secondary);
-        }
-        
-        /* MAP */
-        #map {
-            width: 100%;
-            height: 500px;
-            border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            border: 1px solid rgba(212,175,55,0.25);
-        }
-        
-        /* STATUS BADGE */
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-        }
-        
-        .status-pending {
-            background: #ffeaa7;
-            color: #d63031;
-        }
-        
-        .status-approved {
-            background: #55efc4;
-            color: #27ae60;
-        }
-        
-        .status-rejected {
-            background: #ffb3ba;
-            color: #e74c3c;
-        }
-        
-        /* PROGRESS */
-        .progress-bar {
-            background: var(--border);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        .progress-bar-fill {
-            background: var(--success);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        /* GRID */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .grid.col-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
+/* PROGRESS */
+.progress-bar{background:var(--border);height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.progress-bar-fill{background:#1a7340;height:100%;transition:width .3s;}
 
-        @media (min-width: 1600px) {
-            .container {
-                padding: 30px;
-            }
-            .card {
-                padding: 35px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .grid.col-2 {
-                grid-template-columns: 1fr;
-            }
-            
-            .nav-tabs {
-                flex-direction: column;
-            }
-            
-            header h1 {
-                font-size: 20px;
-            }
-        }
-        
-        /* ALERTS */
-        .alert {
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-right: 4px solid;
-        }
-        
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-right-color: #0c5460;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border-right-color: #155724;
-        }
-        
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border-right-color: #856404;
-        }
-        
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border-right-color: #721c24;
-        }
-        
-        /* HINT */
-        .hint {
-            background: #f0f8ff;
-            padding: 15px;
-            border-right: 4px solid var(--accent);
-            border-radius: 4px;
-            margin: 15px 0;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-        
-        .hint strong {
-            color: var(--primary);
-        }
-        
-        /* INSTRUCTIONS */
-        .instructions {
-            background: white;
-            padding: 20px;
-            border-radius: 4px;
-            margin-bottom: 25px;
-        }
-        
-        .instructions h3 {
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .instructions ol, .instructions ul {
-            margin-right: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-            line-height: 1.8;
-        }
-        
-        /* HIDDEN */
-        .hidden {
-            display: none !important;
-        }
+/* MODAL */
+.modal{display:none;position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.4);}
+.modal.active{display:flex;align-items:center;justify-content:center;}
+.modal-content{background:white;padding:28px;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.25);max-width:580px;width:90%;max-height:88vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.modal-header h2{font-size:16px;color:var(--primary);}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);line-height:1;}
+.modal-close:hover{color:var(--text-dark);}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
 
-        .editable-active [data-editable] {
-            outline: 2px dashed rgba(52, 152, 219, 0.6);
-            position: relative;
-        }
+/* IMAGE VIEWER */
+.full-screen-modal{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.88);align-items:center;justify-content:center;padding:20px;}
+.full-screen-modal.active{display:flex;}
+.viewer-card{width:100%;max-width:1100px;max-height:95vh;display:flex;flex-direction:column;position:relative;}
+.viewer-close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:20px;cursor:pointer;z-index:5;}
+.viewer-actions{position:absolute;top:14px;left:14px;display:flex;gap:6px;z-index:5;}
+.viewer-actions button{border:none;padding:7px 12px;border-radius:4px;background:rgba(255,255,255,.9);cursor:pointer;font-size:13px;}
+.viewer-image-wrapper{overflow:hidden;flex:1;display:flex;align-items:center;justify-content:center;border-radius:6px;}
+.viewer-image{max-width:100%;max-height:100%;transform-origin:center;cursor:grab;user-select:none;}
+.viewer-image:active{cursor:grabbing;}
 
-        .editable-active [data-editable]:hover {
-            background: rgba(52, 152, 219, 0.05);
-        }
+/* LOCATION OPTIONS */
+.location-option{margin-bottom:10px;padding:10px 12px;border:1px solid var(--border);border-radius:4px;background:#fcfcfc;}
+.location-option label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;}
+.location-option strong{display:block;margin-bottom:2px;}
 
-        .editable-list-controls {
-            display: inline-flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
+/* DOCUMENTS PAGE */
+.docs-section{margin-bottom:20px;}
+.docs-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.doc-link-item,.doc-file-item,.doc-note-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:4px;margin-bottom:8px;background:white;}
+.doc-link-item a{color:var(--accent);text-decoration:none;flex:1;font-size:13px;}
+.doc-link-item a:hover{text-decoration:underline;}
+.doc-note-item{flex-direction:column;align-items:flex-start;}
+.doc-note-item .note-text{font-size:13px;color:var(--text-dark);}
+.doc-note-item .note-meta{font-size:11px;color:var(--text-light);margin-top:3px;}
+.doc-empty{color:var(--text-light);font-size:13px;padding:12px 0;}
+.add-link-form{background:var(--light-bg);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px;}
+.add-link-form input{margin-bottom:8px;}
 
-        .editable-list-controls button {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            line-height: 1;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: white;
-            color: var(--primary);
-            cursor: pointer;
-        }
+/* DETAIL PAGE */
+.detail-section{background:var(--light-bg);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:14px;}
+.detail-section h4{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;}
+.detail-row{display:flex;gap:6px;margin-bottom:6px;font-size:13px;}
+.detail-row strong{min-width:100px;flex-shrink:0;}
+.comment-item{background:white;border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:8px;border-right:3px solid var(--accent);}
+.comment-item .comment-text{font-size:13px;}
+.comment-item .comment-date{font-size:11px;color:var(--text-light);margin-top:4px;}
+.summary-textarea{width:100%;min-height:180px;padding:12px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;direction:rtl;resize:vertical;line-height:1.7;}
+.summary-textarea:focus{outline:none;border-color:var(--accent);}
 
-        .editable-list-controls button:hover {
-            background: var(--light-bg);
-        }
+/* TRACKER */
+.tracker-item{background:white;border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px;}
+.tracker-item .tracker-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.success-banner{background:var(--green-bg);color:var(--green);border:1px solid #c3e6cb;border-radius:4px;padding:14px 18px;margin-bottom:14px;font-weight:600;font-size:14px;text-align:center;}
 
-        .checklist-item.met label {
-            text-decoration: line-through;
-            color: var(--text-dark);
-        }
+/* EDITOR INLINE */
+.editable-active [data-editable]{outline:2px dashed rgba(41,128,185,.5);position:relative;}
+.editable-active [data-editable]:hover{background:rgba(41,128,185,.04);}
+.editable-list-controls{display:inline-flex;gap:4px;margin-bottom:8px;}
+.editable-list-controls button{width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--border);background:white;color:var(--primary);cursor:pointer;font-size:14px;}
 
-        .checklist-item.unmet label {
-            color: #c0392b;
-        }
+/* EDITOR PANEL */
+.editor-panel{margin-top:18px;background:#fffdf0;border:1px solid #f0e6c0;border-radius:4px;padding:14px;}
+.editor-list{display:grid;gap:8px;}
+.editor-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:white;border:1px solid var(--border);border-radius:4px;font-size:13px;}
+.editor-item .editor-name{font-weight:600;color:var(--primary);}
+.editor-item .editor-meta{color:var(--text-light);}
+.editor-item .editor-email-btn{padding:4px 10px;font-size:12px;}
 
-        .image-upload p {
-            margin: 0;
-            font-size: 13px;
-            color: var(--text-dark);
-        }
+/* FOOTER */
+footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;border-top:1px solid var(--border);font-size:12px;}
 
-        .upload-preview {
-            margin-top: 15px;
-            position: relative;
-        }
-
-        .upload-preview img {
-            width: 100%;
-            max-height: 280px;
-            border-radius: 4px;
-            cursor: pointer;
-            object-fit: cover;
-        }
-
-        .full-screen-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1100;
-            background: rgba(0,0,0,0.85);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .full-screen-modal.active {
-            display: flex;
-        }
-
-        .viewer-card {
-            background: transparent;
-            border: none;
-            width: 100%;
-            max-width: 1100px;
-            max-height: 95vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .viewer-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.9);
-            color: var(--text-dark);
-            font-size: 22px;
-            cursor: pointer;
-            z-index: 5;
-        }
-
-        .viewer-actions {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            gap: 8px;
-            z-index: 5;
-        }
-
-        .viewer-actions button {
-            border: none;
-            padding: 10px 14px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.9);
-            cursor: pointer;
-            color: var(--text-dark);
-            font-size: 14px;
-        }
-
-        .viewer-image-wrapper {
-            overflow: hidden;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .viewer-image {
-            max-width: 100%;
-            max-height: 100%;
-            transform-origin: center center;
-            cursor: grab;
-            user-select: none;
-        }
-
-        .viewer-image:active {
-            cursor: grabbing;
-        }
-
-        /* DETAILS MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
-        }
-        
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 40px;
-            border-radius: 4px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 15px;
-        }
-        
-        .modal-header h2 {
-            color: var(--primary);
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-light);
-        }
-        
-        .modal-close:hover {
-            color: var(--text-dark);
-        }
-
-        .location-option {
-            margin-bottom: 12px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: #fcfcfc;
-        }
-
-        .location-option label {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            cursor: pointer;
-        }
-
-        .location-option strong {
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .location-options {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        
-        /* IMAGE UPLOAD */
-        .image-upload {
-            border: 2px dashed var(--accent);
-            padding: 30px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f9f9f9;
-        }
-        
-        .image-upload:hover {
-            background: #f0f8ff;
-            border-color: var(--primary);
-        }
-        
-        .image-upload.has-image {
-            border-style: solid;
-            padding: 0;
-        }
-        
-        .image-preview {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-        
-        /* FOOTER */
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-light);
-            margin-top: 50px;
-            border-top: 1px solid var(--border);
-        }
-    </style>
+@media(max-width:768px){
+  .form-row{grid-template-columns:1fr;}
+  .nav-tabs{flex-direction:column;}
+  header h1{font-size:16px;}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER -->
-        <header>
-            <h1 data-edit-key="headerTitle">🏗️ מערכת ניהול בקשות תוכנית רובע ז'</h1>
-            <p data-edit-key="headerSubtitle">אשדוד — תוכנית מס' 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
-        </header>
-        
-        <!-- ROLE SWITCH -->
-        <div class="role-switch">
-            <label>בחר תפקיד:</label>
-            <button id="roleSubmitter" class="active" onclick="switchRole('submitter')">עורך בקשה</button>
-            <button id="roleReviewer" onclick="switchRole('reviewer')">אדריכלית העיר</button>
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <h1 data-edit-key="headerTitle">מערכת ניהול בקשות — תוכנית רובע ז׳</h1>
+  <p data-edit-key="headerSubtitle">עיריית אשדוד | תוכנית 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
+</header>
+
+<!-- ROLE SWITCH -->
+<div class="role-switch">
+  <label>תפקיד:</label>
+  <button id="roleSubmitter" class="active" onclick="switchRole('submitter')">עורך בקשה</button>
+  <button id="roleReviewer" onclick="switchRole('reviewer')">אדריכלית העיר</button>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-tabs" id="navTabs"></div>
+
+<!-- EDITOR TOOLBAR (reviewer only) -->
+<div id="editorToolbar" class="editor-toolbar-bar hidden">
+  <strong style="color:var(--primary);font-size:13px;">מצב עריכה:</strong>
+  <button class="btn btn-light btn-sm" id="toggleEditBtn" onclick="toggleReviewerEdit()">הפעל עריכה</button>
+  <button class="btn btn-success btn-sm hidden" id="saveEditsBtn" onclick="savePageEdits()">שמור שינויים</button>
+  <button class="btn btn-danger btn-sm hidden" id="cancelEditsBtn" onclick="cancelPageEdits()">בטל</button>
+  <span id="editModeHint" style="color:var(--text-light);font-size:12px;">ניתן לשנות טקסטים, להוסיף ולמחוק שורות.</span>
+</div>
+
+<!-- PAGES -->
+<div id="pagesContainer">
+
+  <!-- ===== DOCUMENTS (first) ===== -->
+  <div id="submitterDocuments" class="page">
+    <div class="card">
+      <h2>מסמכי התוכנית</h2>
+
+      <div class="docs-toolbar">
+        <button class="btn btn-primary btn-sm" onclick="showAddLinkForm()">+ הוסף קישור</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('docFileInput').click()">+ העלה מסמך</button>
+        <input type="file" id="docFileInput" accept="*/*" multiple style="display:none" onchange="handleDocFileUpload(this.files)">
+      </div>
+
+      <!-- Add link form (hidden by default) -->
+      <div id="addLinkForm" class="add-link-form hidden">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>כותרת הקישור</label>
+          <input type="text" id="newLinkTitle" placeholder="למשל: תשריט התוכנית">
         </div>
-        
-        <!-- NAVIGATION TABS -->
-        <div class="nav-tabs" id="navTabs">
-            <!-- נוצר דינמית -->
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>כתובת URL</label>
+          <input type="url" id="newLinkUrl" placeholder="https://...">
         </div>
-
-        <div id="editorToolbar" class="card hidden" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <strong style="color: var(--primary);">מצב עריכה:</strong>
-            <button class="btn btn-light" id="toggleEditBtn" onclick="toggleReviewerEdit()">הפעל עריכה</button>
-            <button class="btn btn-success hidden" id="saveEditsBtn" onclick="savePageEdits()">שמור שינויים</button>
-            <button class="btn btn-secondary hidden" id="cancelEditsBtn" onclick="cancelPageEdits()">בטל</button>
-            <span id="editModeHint" style="color: var(--text-light); font-size: 14px;">ניתן לשנות טקסטים, להוסיף ולמחוק שורות ברשימות.</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-success btn-sm" onclick="saveNewLink()">שמור קישור</button>
+          <button class="btn btn-light btn-sm" onclick="hideAddLinkForm()">ביטול</button>
         </div>
-        
-        <!-- PAGES CONTAINER -->
-        <div id="pagesContainer">
-            <!-- עורך בקשה -->
-            <div id="submitterInstructions" class="page active">
-                <div class="card">
-                    <h2>📋 הנחיות הגשת בקשה</h2>
-                    
-                    <div class="alert alert-info">
-                        <strong>חשוב:</strong> כל הבקשות להרחבת דירה ברובע ז' חייבות לעמוד בתנאים המפורטים בהוראות התוכנית.
-                    </div>
-                    
-                    <div class="instructions" data-edit-key="submissionInstructions">
-                        <h3 data-edit-key="submissionInstructionsTitle">שלבי הגשה:</h3>
-                        <ol data-edit-list id="instructionsList">
-                            <li data-edit-key="instruction1"><strong>בדקו את זכאותכם:</strong> הדירה שלכם בנויה בבנייה רוויה (4+ יחידות בקומה אחת)? קיבלה אישור אכלוס לפני נובמבר 2024?</li>
-                            <li data-edit-key="instruction2"><strong>מדדו את הזכויות:</strong> השטח המקסימלי לדירה הוא 160 מ"ר + 12 מ"ר מרפסת + 5 מ"ר סוכה.</li>
-                            <li data-edit-key="instruction3"><strong>תכננו את ההרחבה:</strong> עיצוב, קווי בניין, חומרי גמר.</li>
-                            <li data-edit-key="instruction4"><strong>הכינו תוכנית בינוי:</strong> עם מפת מדידה מעודכנת, דרכי גישה, חנייה, פיתוח שטח.</li>
-                            <li data-edit-key="instruction5"><strong>הגישו בקשה:</strong> עם כל המסמכים הנדרשים.</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="hint" data-edit-key="criticalHint">
-                        <strong>⚠️ זכרו:</strong> קווי בניין מינימליים — 3 מ' לבנייה עד 4 קומות, 4 מ' למעל 4 קומות (לשכנים). חזית — 0 מ'. שימו לב לעצים בוגרים בשטח.
-                    </div>
-                    
-                    <h3>דרישות מעצם בהנחיות התוכנית:</h3>
-                    <ul style="margin-right: 30px; margin-bottom: 15px;">
-                        <li data-edit-key="requirement1"><strong>תוכנית בינוי:</strong> אדריכלית, בהנדסית, פיתוח שטח, גימור חזיתות</li>
-                        <li data-edit-key="requirement2"><strong>אישורים:</strong> עיר, מט"ש (ביוב), איגוד ערים (סביבה), פקיד יערות (עצים)</li>
-                        <li data-edit-key="requirement3"><strong>הסכמות:</strong> כל בעלי הדירות בבית המשותף (לדיורית / חנייה)</li>
-                        <li data-edit-key="requirement4"><strong>רישום הערת אזהרה:</strong> בפרסום תוכנית בינוי</li>
-                        <li data-edit-key="requirement5"><strong>בדיקת תוקף:</strong> 10 שנים ממועד אישור (עד נובמבר 2034)</li>
-                    </ul>
-                    
-                    <div style="margin-top: 30px; text-align: center;">
-                        <button class="btn btn-primary" onclick="goToPage('submitterForm')">
-                            ← התחל הגשת בקשה חדשה
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- טופס הגשה -->
-            <div id="submitterForm" class="page">
-                <div class="card">
-                    <h2 data-edit-key="formTitle">📝 טופס הגשת בקשה</h2>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelSubmitterName">שם מגיש הבקשה</label>
-                        <input type="text" id="submitterName" placeholder="שם מלא">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelContact">טלפון ודוא"ל</label>
-                        <input type="email" id="submitterEmail" placeholder="דוא"ל">
-                        <input type="tel" id="submitterPhone" placeholder="טלפון" style="margin-top: 10px;">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelAddress">כתובת הנכס</label>
-                        <input type="text" id="propertyAddress" placeholder="רחוב, מספר בית, קומה">
-                    </div>
-                    
-                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div>
-                            <label data-edit-key="labelGush">גוש</label>
-                            <input type="text" id="gushNumber" placeholder="גוש">
-                        </div>
-                        <div>
-                            <label data-edit-key="labelHelka">חלקה</label>
-                            <input type="text" id="helkaNumber" placeholder="חלקה">
-                        </div>
-                    </div>
+      </div>
 
-                    <div class="form-group">
-                        <label data-edit-key="labelCurrentArea">שטח דירה קיים (מ"ר)</label>
-                        <input type="number" id="currentArea" placeholder="שטח נוכחי">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelRequestedArea">שטח דירה מבוקש אחרי הרחבה (מ"ר)</label>
-                        <input type="number" id="requestedArea" placeholder="שטח סופי">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelExpansionDescription">תיאור ההרחבה המבוקשת</label>
-                        <textarea id="expansionDescription" placeholder="חדרים נוספים, סוכה, דיורית, חדר על גג, וכו'"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelConsentQuestion">האם יש הסכמת דיירים?</label>
-                        <select id="tenantConsent" onchange="toggleConsentUpload()">
-                            <option value="">-- בחרו --</option>
-                            <option value="yes">כן, יש לי הסכמה בכתב</option>
-                            <option value="no">לא, עדיין לא השגתי</option>
-                            <option value="partial">חלקית, עבודה בעיצומה</option>
-                        </select>
-                    </div>
+      <!-- Links -->
+      <div class="docs-section">
+        <h3>קישורים</h3>
+        <div id="docLinksList"></div>
+      </div>
 
-                    <div class="form-group hidden" id="consentUploadGroup">
-                        <label>מסמך הסכמה של הדיירים</label>
-                        <div class="image-upload" id="consentUpload" onclick="document.getElementById('consentInput').click()">
-                            <p>גררו קובץ או לחצו להעלאה</p>
-                            <small style="color: var(--text-light);">נתמך כל קובץ: PDF, תמונה, Word, Excel, DWG, ועוד.</small>
-                            <input type="file" id="consentInput" accept="*/*" style="display:none;">
-                        </div>
-                        <div id="consentPreview"></div>
-                    </div>
+      <!-- Files -->
+      <div class="docs-section">
+        <h3>קבצים מצורפים</h3>
+        <div id="docFilesList"></div>
+      </div>
 
-                    <div class="form-group">
-                        <label data-edit-key="labelVisualization">הדמייה עיצובית</label>
-                        <div class="image-upload" id="visualizationUpload" onclick="document.getElementById('visualizationInput').click()">
-                            <p>גררו קובץ או לחצו להעלאה</p>
-                            <small style="color: var(--text-light);">נתמך כל קובץ: תמונה, PDF, DWG, Word, Excel ועוד.</small>
-                            <input type="file" id="visualizationInput" accept="*/*" style="display:none;">
-                        </div>
-                        <div id="visualizationPreview"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label data-edit-key="labelRegistration">רישום מפת תכנית / מפה</label>
-                        <div class="image-upload" id="registrationUpload" onclick="document.getElementById('registrationInput').click()">
-                            <p>גררו קובץ או לחצו להעלאה</p>
-                            <small style="color: var(--text-light);">נתמך כל קובץ: תמונה, PDF, Word, Excel, DWG ועוד.</small>
-                            <input type="file" id="registrationInput" accept="*/*" style="display:none;">
-                        </div>
-                        <div id="registrationPreview"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label data-edit-key="labelPlanUpload">תוכנית בינוי (תמונה/PDF)</label>
-                        <div class="image-upload" id="planUpload" onclick="document.getElementById('planInput').click()">
-                            <p>גררו קובץ או לחצו להעלאה</p>
-                            <small style="color: var(--text-light);">ניתן להעלות כל סוג קובץ: תמונה, PDF, DWG, Word, Excel וכו'.</small>
-                            <input type="file" id="planInput" accept="*/*" style="display:none;">
-                        </div>
-                        <div id="planPreview"></div>
-                        <button id="openPlanFullscreenBtn" class="btn btn-light hidden" style="margin-top: 12px;" onclick="openPlanFullscreen()">פתח תוכנית על כל המסך</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label>הוראות התוכנית (מפתח חיפוש)</label>
-                        <div class="image-upload" id="instructionsUpload" onclick="document.getElementById('instructionsInput').click()">
-                            <p>גררו קובץ הוראות או לחצו להעלאה</p>
-                            <small style="color: var(--text-light);">טקסט מתאים לחיפוש: TXT, MD, CSV. ניתן גם להעלות PDF לכל מטרה.</small>
-                            <input type="file" id="instructionsInput" accept="*/*" style="display:none;">
-                        </div>
-                        <div id="instructionsPreview" style="margin-top: 12px;"></div>
-                        <div style="display: grid; gap: 10px; margin-top: 16px;">
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <input id="instructionsSearchInput" type="text" placeholder="חפשו מילה בתוך הוראות התוכנית" style="flex:1; padding:10px; border:1px solid var(--border); border-radius:4px;">
-                                <button class="btn btn-light" onclick="searchInstructionsDoc()">חפש</button>
-                            </div>
-                            <div id="instructionsSearchResults" style="min-height: 40px; color: var(--text-dark);"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-edit-key="labelAdditionalNotes">הערות נוספות</label>
-                        <textarea id="additionalNotes" placeholder="כל מידע חשוב שאתם רוצים להוסיף"></textarea>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 30px;">
-                        <button class="btn btn-light" onclick="goToPage('submitterChecklist')">
-                            ← בדוק דרישות לפני שליחה
-                        </button>
-                        <button class="btn btn-primary" onclick="submitRequest()">
-                            שלח בקשה →
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- צ'ק ליסט -->
-            <div id="submitterChecklist" class="page">
-                <div class="card">
-                    <h2>✅ צ'ק ליסט — בדיקת עמידה בדרישות</h2>
-                    
-                    <div class="alert alert-warning">
-                        <strong>חובה:</strong> סמנו את כל הפריטים על מנת להגיש בקשה תקנית.
-                    </div>
-                    
-                    <h3 data-edit-key="basicRequirementsTitle">דרישות בסיסיות</h3>
-                    <ul class="checklist" id="basicChecklist" data-edit-list>
-                        <li class="checklist-item" data-edit-key="check1">
-                            <input type="checkbox" id="check1">
-                            <label for="check1">הדירה בבנייה רוויה (4+ יחידות, לפחות 2 קומות)</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check2">
-                            <input type="checkbox" id="check2">
-                            <label for="check2">הדירה קיבלה אישור אכלוס לפני 05/11/2024</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check3">
-                            <input type="checkbox" id="check3">
-                            <label for="check3">השטח המבוקש לא עולה על 160 מ"ר (+ 12 מ"ר מרפסת + 5 מ"ר סוכה)</label>
-                        </li>
-                    </ul>
-                    
-                    <h3 data-edit-key="documentRequirementsTitle">מסמכים נדרשים</h3>
-                    <ul class="checklist" id="documentChecklist" data-edit-list>
-                        <li class="checklist-item" data-edit-key="check4">
-                            <input type="checkbox" id="check4">
-                            <label for="check4">תוכנית בינוי (אדריכלית, הנדסית, פיתוח)</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check5">
-                            <input type="checkbox" id="check5">
-                            <label for="check5">מפת מדידה מעודכנת של הנכס</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check6">
-                            <input type="checkbox" id="check6">
-                            <label for="check6">חומרי גמר וצבע הקדמי</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check7">
-                            <input type="checkbox" id="check7">
-                            <label for="check7">דרכי גישה וחנייה (אם מושפע)</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check8">
-                            <input type="checkbox" id="check8">
-                            <label for="check8">הערכת השפעה על עצים בוגרים (אם קיימים)</label>
-                        </li>
-                    </ul>
-                    
-                    <h3 data-edit-key="approvalsTitle">הסכמות והאשרות</h3>
-                    <ul class="checklist" id="approvalsChecklist" data-edit-list>
-                        <li class="checklist-item" data-edit-key="check9">
-                            <input type="checkbox" id="check9">
-                            <label for="check9">הסכמת כל בעלי הדירות בבית המשותף</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check10">
-                            <input type="checkbox" id="check10">
-                            <label for="check10">אישור מט"ש אשדוד (יכולת ביוב)</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check11">
-                            <input type="checkbox" id="check11">
-                            <label for="check11">אישור איגוד ערים לאיכות הסביבה</label>
-                        </li>
-                        <li class="checklist-item" data-edit-key="check12">
-                            <input type="checkbox" id="check12">
-                            <label for="check12">אישור פקיד יערות (אם יש עצים בוגרים)</label>
-                        </li>
-                    </ul>
-                    
-                    <!-- Progress -->
-                    <h3 style="margin-top: 30px;">התקדמות</h3>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
-                    </div>
-                    <p id="progressText" style="font-size: 14px; color: var(--text-light);">0 / 12</p>
-                    
-                    <div style="margin-top: 30px; display: flex; gap: 10px;">
-                        <button class="btn btn-light" onclick="goToPage('submitterForm')">← חזור לטופס</button>
-                        <button class="btn btn-primary" id="submitBtn" onclick="goToPage('submitterForm')" disabled>
-                            מכל הפריטים נבדקו ✓
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- מסמכי התוכנית -->
-            <div id="submitterDocuments" class="page">
-                <div class="card">
-                    <h2>📄 מסמכי התוכנית</h2>
-                    
-                    <div style="display: grid; gap: 20px;">
-                        <!-- קישורים לתשריטים והנחיות -->
-                        <div style="background: #f9f9f9; padding: 20px; border-radius: 4px; border: 1px solid var(--border);">
-                            <h3 style="margin-bottom: 15px; color: var(--primary);">📋 קישורים עיקריים</h3>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <div><strong>הנחיות להגשה:</strong> 
-                                    <button class="btn btn-light" style="margin-right: 10px;" onclick="downloadInstructions()">הורד הנחיות</button>
-                                    <button class="btn btn-light" onclick="openSearchModal()">חפש בטקסט</button>
-                                </div>
-                                <div><strong>תשריט התוכנית:</strong> 
-                                    <button class="btn btn-light" onclick="alert('תשריט יועלה בקרוב')">הצג תשריט</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- קישורים נוספים -->
-                        <div>
-                            <h3 style="margin-bottom: 15px; color: var(--primary);">🔗 קישורים נוספים</h3>
-                            <div id="additionalLinksList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                            </div>
-                            <div id="additionalLinksEdit" style="display: none; gap: 10px; margin-bottom: 15px; flex-direction: column;">
-                            </div>
-                            <button class="btn btn-secondary" id="addLinkBtn" onclick="addNewDocumentLink()" style="display: none; align-self: flex-start;">+ הוסף קישור</button>
-                        </div>
-                        
-                        <!-- תמונות נוספות -->
-                        <div>
-                            <h3 style="margin-bottom: 15px; color: var(--primary);">🖼️ תמונות נוספות</h3>
-                            <div id="additionalImagesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            </div>
-                            <div id="additionalImagesEdit" style="display: none; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                            </div>
-                            <button class="btn btn-secondary" id="addImageBtn" onclick="uploadDocumentImage()" style="display: none;">+ הוסף תמונה</button>
-                        </div>
-                        
-                        <!-- טקסט חופשי -->
-                        <div>
-                            <h3 style="margin-bottom: 15px; color: var(--primary);">📝 הערות והוראות נוספות</h3>
-                            <div id="freeTextDisplay" style="background: white; padding: 15px; border: 1px solid var(--border); border-radius: 4px; min-height: 80px;">
-                                <p style="color: var(--text-light);">אין הערות נוספות עדיין</p>
-                            </div>
-                            <textarea id="freeTextEdit" style="display: none; width: 100%; min-height: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; font-family: inherit;"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- עקוב אחר בקשה -->
-            <div id="submitterTracker" class="page">
-                <div class="card">
-                    <h2>📊 עקוב אחרי הבקשה שלך</h2>
-                    
-                    <div id="trackerContent">
-                        <p style="color: var(--text-light); text-align: center;">אין לך בקשות פעילות עדיין.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- ==================== בודק ==================== -->
-            
-            <!-- רשימת בקשות -->
-            <div id="reviewerDashboard" class="page">
-                <div class="card">
-                    <h2 data-edit-key="reviewerDashboardTitle">📋 רשימת כל הבקשות</h2>
-                    
-                    <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-                        <input type="text" id="searchInput" placeholder="חפשו לפי כתובת או שם עורך" 
-                               style="flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
-                        <select id="filterStatus" onchange="filterRequests()" 
-                                style="padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
-                            <option value="">כל הסטטוסים</option>
-                            <option value="pending">ממתינה</option>
-                            <option value="approved">אושרה</option>
-                            <option value="rejected">דחויה</option>
-                        </select>
-                    </div>
-                    
-                    <div class="table-wrapper">
-                        <table id="requestsTable">
-                            <thead>
-                                <tr>
-                                    <th class="sortable" data-sort-key="number" onclick="setTableSort('number')">#</th>
-                                    <th class="sortable" data-sort-key="address" onclick="setTableSort('address')">כתובת</th>
-                                    <th class="sortable" data-sort-key="submitterName" onclick="setTableSort('submitterName')">עורך בקשה</th>
-                                    <th class="sortable" data-sort-key="area" onclick="setTableSort('area')">שטח (כרגע → מבוקש)</th>
-                                    <th class="sortable" data-sort-key="status" onclick="setTableSort('status')">סטטוס</th>
-                                    <th class="sortable" data-sort-key="createdAt" onclick="setTableSort('createdAt')">תאריך</th>
-                                    <th>פעולות</th>
-                                </tr>
-                            </thead>
-                            <tbody id="requestsBody">
-                                <tr style="text-align: center;">
-                                    <td colspan="7" style="color: var(--text-light); padding: 30px;">אין בקשות עדיין</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="editor-panel">
-                        <h3>רשימת עורכי בקשות</h3>
-                        <div id="requestEditorsList" class="editor-list">
-                            <div style="color: var(--text-light);">לא נמצאו עורכי בקשות עדיין.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- מפה -->
-            <div id="reviewerMap" class="page">
-                <div class="card">
-                    <h2 data-edit-key="reviewerMapTitle">🗺️ מפת בקשות — אשדוד, רובע ז'</h2>
-                    <p data-edit-key="reviewerMapNote" style="color: var(--text-light); margin-bottom: 20px;">לחצו על סימן למידע על הבקשה</p>
-                    <div id="map"></div>
-                </div>
-            </div>
-            
-            <!-- הערות ואישור -->
-            <div id="reviewerApproval" class="page">
-                <div class="card" id="approvalContent">
-                    <p style="color: var(--text-light); text-align: center;">בחרו בקשה מרשימת הבקשות</p>
-                </div>
-            </div>
+      <!-- Notes -->
+      <div class="docs-section">
+        <h3>הערות</h3>
+        <div id="docNotesList"></div>
+        <div style="margin-top:10px;">
+          <textarea id="docNewNoteText" class="form-group" style="width:100%;min-height:70px;padding:9px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;direction:rtl;" placeholder="הוסף הערה..."></textarea>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;" onclick="saveDocNote()">שמור הערה</button>
         </div>
-        
-        <!-- FOOTER -->
-        <footer>
-            <p>© 2024 עיריית אשדוד | מערכת ניהול בקשות תוכנית רובע ז' | תוכנית 603-0595660</p>
-        </footer>
+      </div>
     </div>
-    
-    <!-- MODAL -->
-    <div id="detailsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>פרטי בקשה</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div id="modalBody"></div>
+  </div>
+
+  <!-- ===== INSTRUCTIONS ===== -->
+  <div id="submitterInstructions" class="page active">
+    <div class="card">
+      <h2 data-edit-key="instructionsTitle">הנחיות הגשת בקשה</h2>
+      <div class="alert alert-info"><strong>חשוב:</strong> כל הבקשות להרחבת דירה ברובע ז׳ חייבות לעמוד בתנאים המפורטים בהוראות התוכנית.</div>
+      <div data-edit-key="submissionInstructions">
+        <h3 data-edit-key="submissionInstructionsTitle">שלבי הגשה:</h3>
+        <ol data-edit-list id="instructionsList" style="margin-right:20px;margin-bottom:14px;">
+          <li data-edit-key="instruction1" style="margin-bottom:6px;"><strong>בדקו זכאות:</strong> בנייה רוויה (4+ יחידות)? אישור אכלוס לפני 11/2024?</li>
+          <li data-edit-key="instruction2" style="margin-bottom:6px;"><strong>מדדו זכויות:</strong> מקסימום 160 מ"ר + 12 מ"ר מרפסת + 5 מ"ר סוכה.</li>
+          <li data-edit-key="instruction3" style="margin-bottom:6px;"><strong>תכננו הרחבה:</strong> עיצוב, קווי בניין, חומרי גמר.</li>
+          <li data-edit-key="instruction4" style="margin-bottom:6px;"><strong>הכינו תוכנית בינוי:</strong> מפת מדידה מעודכנת, גישה, חניה, פיתוח שטח.</li>
+          <li data-edit-key="instruction5" style="margin-bottom:6px;"><strong>הגישו בקשה:</strong> עם כל המסמכים הנדרשים.</li>
+        </ol>
+        <div class="alert alert-warning" data-edit-key="criticalHint"><strong>קווי בניין:</strong> 3 מ׳ לבנייה עד 4 קומות, 4 מ׳ מעל (לשכנים). חזית — 0 מ׳. שימו לב לעצים בוגרים.</div>
+        <h3>דרישות עיקריות:</h3>
+        <ul data-edit-list id="requirementsList" style="margin-right:20px;margin-bottom:14px;">
+          <li data-edit-key="req1" style="margin-bottom:5px;"><strong>תוכנית בינוי:</strong> אדריכלית, הנדסית, פיתוח שטח, גימור חזיתות</li>
+          <li data-edit-key="req2" style="margin-bottom:5px;"><strong>אישורים:</strong> עיר, מט"ש, איגוד ערים, פקיד יערות</li>
+          <li data-edit-key="req3" style="margin-bottom:5px;"><strong>תוקף:</strong> 10 שנים ממועד אישור (עד 11/2034)</li>
+        </ul>
+      </div>
+      <div style="margin-top:20px;text-align:center;">
+        <button class="btn btn-primary" onclick="goToPage('submitterForm')">התחל הגשת בקשה חדשה ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div id="submitterForm" class="page">
+    <div class="card">
+      <h2 data-edit-key="formTitle">טופס הגשת בקשה</h2>
+
+      <div class="form-group">
+        <label>שם עורך/ת הבקשה</label>
+        <input type="text" id="submitterName" placeholder="שם מלא + תפקיד">
+      </div>
+
+      <div class="form-group">
+        <label>שם המבקש/ת</label>
+        <input type="text" id="applicantName" placeholder="שם בעל/ת הדירה">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>דוא"ל</label>
+          <input type="email" id="submitterEmail" placeholder="email@example.com">
         </div>
+        <div class="form-group">
+          <label>טלפון</label>
+          <input type="tel" id="submitterPhone" placeholder="05X-XXXXXXX">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>רחוב</label>
+          <input type="text" id="propertyStreet" placeholder="שם הרחוב">
+        </div>
+        <div class="form-group">
+          <label>מספר בניין</label>
+          <input type="text" id="propertyBuildingNumber" placeholder="מספר">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>גוש</label>
+          <input type="text" id="gushNumber" placeholder="מספר גוש">
+        </div>
+        <div class="form-group">
+          <label>חלקה</label>
+          <input type="text" id="helkaNumber" placeholder="מספר חלקה">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>תיאור הבקשה</label>
+        <textarea id="expansionDescription" placeholder="תוספת בנייה, סוג התוספת, קומה, דירה, שטח מבוקש..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>תוכנית בינוי</label>
+        <div class="upload-zone" id="planUpload" onclick="triggerUpload('planInput', event)">
+          <div class="zone-prompt">
+            <p>גררו קובץ או לחצו להעלאה</p>
+            <small>תמונה, PDF, DWG, Word, Excel ועוד</small>
+          </div>
+          <div class="zone-content" id="planContent" style="display:none;"></div>
+          <input type="file" id="planInput" accept="*/*" style="display:none" onchange="handleAttachmentSelect(this.files[0],'plan')">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הדמייה עיצובית</label>
+        <div class="upload-zone" id="visualizationUpload" onclick="triggerUpload('visualizationInput', event)">
+          <div class="zone-prompt">
+            <p>גררו קובץ או לחצו להעלאה</p>
+            <small>תמונה, PDF, DWG ועוד</small>
+          </div>
+          <div class="zone-content" id="visualizationContent" style="display:none;"></div>
+          <input type="file" id="visualizationInput" accept="*/*" style="display:none" onchange="handleAttachmentSelect(this.files[0],'visualization')">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הערות נוספות</label>
+        <textarea id="additionalNotes" placeholder="כל מידע חשוב"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterChecklist')">בדוק צ׳ק ליסט ←</button>
+        <button class="btn btn-primary" onclick="submitRequest()">שלח בקשה ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHECKLIST ===== -->
+  <div id="submitterChecklist" class="page">
+    <div class="card">
+      <h2>צ׳ק ליסט — בדיקת עמידה בדרישות</h2>
+      <div class="alert alert-info">סמנו את הפריטים שמולאו. ניתן להמשיך גם אם לא הכל מולא — פריטים חסרים יתועדו בסיכום.</div>
+
+      <h3 data-edit-key="basicRequirementsTitle">דרישות בסיסיות</h3>
+      <ul class="checklist" id="basicChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check1">
+          <div class="item-row"><input type="checkbox" id="check1"><label for="check1">הדירה בבנייה רוויה (4+ יחידות, לפחות 2 קומות)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check1" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check2">
+          <div class="item-row"><input type="checkbox" id="check2"><label for="check2">הדירה קיבלה אישור אכלוס לפני 05/11/2024</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check2" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check3">
+          <div class="item-row"><input type="checkbox" id="check3"><label for="check3">השטח המבוקש לא עולה על 160 מ"ר (+ 12 מרפסת + 5 סוכה)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check3" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <h3 data-edit-key="documentRequirementsTitle">מסמכים נדרשים</h3>
+      <ul class="checklist" id="documentChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check4">
+          <div class="item-row"><input type="checkbox" id="check4"><label for="check4">תוכנית בינוי (אדריכלית, הנדסית, פיתוח)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check4" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check5">
+          <div class="item-row"><input type="checkbox" id="check5"><label for="check5">מפת מדידה מעודכנת של הנכס</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check5" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check6">
+          <div class="item-row"><input type="checkbox" id="check6"><label for="check6">חומרי גמר וצבע חזית</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check6" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check7">
+          <div class="item-row"><input type="checkbox" id="check7"><label for="check7">דרכי גישה וחניה (אם מושפע)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check7" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check8">
+          <div class="item-row"><input type="checkbox" id="check8"><label for="check8">הערכת השפעה על עצים בוגרים (אם קיימים)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check8" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <h3 data-edit-key="approvalsTitle">אישורים נדרשים</h3>
+      <ul class="checklist" id="approvalsChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check9">
+          <div class="item-row"><input type="checkbox" id="check9"><label for="check9">אישור מט"ש אשדוד (יכולת ביוב)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check9" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check10">
+          <div class="item-row"><input type="checkbox" id="check10"><label for="check10">אישור איגוד ערים לאיכות הסביבה</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check10" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check11">
+          <div class="item-row"><input type="checkbox" id="check11"><label for="check11">אישור פקיד יערות (אם יש עצים בוגרים)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check11" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <div style="margin-top:16px;">
+        <div class="progress-bar"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+        <p id="progressText" style="font-size:12px;color:var(--text-light);">0 / 11 פריטים</p>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterForm')">← חזור לטופס</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterForm')">המשך להגשה ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRACKER ===== -->
+  <div id="submitterTracker" class="page">
+    <div class="card">
+      <h2>מעקב אחר הבקשה שלך</h2>
+      <div id="submissionSuccess" class="success-banner hidden"></div>
+      <div id="trackerContent">
+        <p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEWER DASHBOARD ===== -->
+  <div id="reviewerDashboard" class="page">
+    <div class="card">
+      <h2 data-edit-key="reviewerDashboardTitle">רשימת כל הבקשות</h2>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input type="text" id="searchInput" placeholder="חיפוש לפי כתובת או שם עורך" style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;">
+        <select id="filterStatus" onchange="filterRequests()" style="padding:8px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;">
+          <option value="">כל הסטטוסים</option>
+          <option value="pending">ממתינה</option>
+          <option value="approved">אושרה</option>
+          <option value="rejected">דחויה</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table id="requestsTable">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort-key="number" onclick="setTableSort('number')">#</th>
+              <th class="sortable" data-sort-key="address" onclick="setTableSort('address')">כתובת</th>
+              <th class="sortable" data-sort-key="submitterName" onclick="setTableSort('submitterName')">עורך בקשה</th>
+              <th class="sortable" data-sort-key="applicantName" onclick="setTableSort('applicantName')">מבקש</th>
+              <th class="sortable" data-sort-key="status" onclick="setTableSort('status')">סטטוס</th>
+              <th class="sortable" data-sort-key="createdAt" onclick="setTableSort('createdAt')">תאריך</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="requestsBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">אין בקשות עדיין</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="editor-panel">
+        <h3 style="margin-top:0;">עורכי בקשות</h3>
+        <div id="requestEditorsList" class="editor-list">
+          <div style="color:var(--text-light);font-size:13px;">אין עורכים עדיין.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAP ===== -->
+  <div id="reviewerMap" class="page">
+    <div class="card">
+      <h2 data-edit-key="reviewerMapTitle">מפת בקשות — אשדוד, רובע ז׳</h2>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:12px;" data-edit-key="reviewerMapNote">לחצו על סימן למידע על הבקשה. ירוק=אושר, כתום=ממתין, אדום=נדחה.</p>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEWER DETAIL PAGE ===== -->
+  <div id="reviewerRequestDetail" class="page">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <button class="btn btn-light btn-sm" onclick="goToPage('reviewerDashboard')">← רשימת בקשות</button>
+        <h2 style="margin:0;border:none;padding:0;" id="detailPageTitle">פרטי בקשה</h2>
+      </div>
+      <div id="detailPageContent"></div>
+    </div>
+  </div>
+
+</div><!-- /pagesContainer -->
+
+<footer>
+  <p>© 2024 עיריית אשדוד | מערכת ניהול בקשות תוכנית רובע ז׳ | 603-0595660</p>
+</footer>
+</div><!-- /container -->
+
+<!-- LOCATION MODAL -->
+<div id="locationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>אישור מיקום כתובת</h2>
+      <button class="modal-close" onclick="closeLocationModal()">×</button>
+    </div>
+    <div id="locationModalBody" style="padding:4px 0;"></div>
+  </div>
+</div>
+
+<!-- EMAIL PREVIEW MODAL -->
+<div id="emailPreviewModal" class="modal">
+  <div class="modal-content" style="max-width:660px;">
+    <div class="modal-header">
+      <h2>תצוגה מקדימה של מייל</h2>
+      <button class="modal-close" onclick="closeEmailPreview()">×</button>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--text-light);">
+      <strong>אל:</strong> <span id="previewEmailTo"></span>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--text-light);">
+      <strong>נושא:</strong> <span id="previewEmailSubject"></span>
+    </div>
+    <textarea id="previewEmailBody" style="width:100%;min-height:220px;padding:12px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="sendPreviewedEmail()">שלח מייל</button>
+      <button class="btn btn-light" onclick="closeEmailPreview()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER -->
+<div id="imageViewerModal" class="full-screen-modal" onclick="closeImageViewer(event)">
+  <div class="viewer-card" onclick="event.stopPropagation()">
+    <button class="viewer-close" onclick="closeImageViewer(event)">×</button>
+    <div class="viewer-actions">
+      <button onclick="zoomViewer(1.25)">+</button>
+      <button onclick="zoomViewer(0.8)">−</button>
+      <button onclick="resetViewer()">איפוס</button>
+    </div>
+    <div class="viewer-image-wrapper">
+      <img id="viewerImage" class="viewer-image" src="" alt="תצוגה מלאה">
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let currentRole = 'submitter';
+let currentPage = 'submitterInstructions';
+let requests = [];
+let pageContent = JSON.parse(localStorage.getItem('pageContent')) || {};
+let documentsContent = JSON.parse(localStorage.getItem('documentsContent')) || { links: [], files: [], notes: [] };
+let tempUploads = { plan: null, visualization: null };
+let map = null;
+let markers = [];
+let pendingLocationRequest = null;
+let pendingLocationCandidates = [];
+let requestSort = { key: 'createdAt', order: 'desc' };
+let editMode = false;
+let pendingEmailData = null;
+let currentDetailId = null;
+const ashdodCenter = [31.8067, 34.6447];
+let viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
+
+// ===== SEED DATA =====
+const SEED_ID = 1716000000001;
+function seedInitialData() {
+  const existing = JSON.parse(localStorage.getItem('requests')) || [];
+  if (existing.some(r => r.id === SEED_ID)) return;
+  const seed = {
+    id: SEED_ID,
+    submitterName: 'הנדסאי הילל הוס (איטי כהן)',
+    applicantName: 'יקטר',
+    submitterEmail: 'itay.cohen@example.com',
+    submitterPhone: '050-1234567',
+    street: 'מאיר בעל הנס',
+    buildingNumber: '7',
+    address: 'מאיר בעל הנס 7',
+    gushNumber: '472',
+    helkaNumber: '84',
+    description: 'אישור תוכנית בינוי במסגרת תוספת בנייה במסגרת הגדלת הזכויות ל-160 מ"ר, קומה א, דירה 3',
+    notes: '',
+    status: 'pending',
+    createdAt: '21/5/2026',
+    comments: [],
+    approval: null,
+    summaryText: '',
+    requirementChecklist: [
+      { id: 'check1', text: 'הדירה בבנייה רוויה (4+ יחידות, לפחות 2 קומות)', checked: true, note: '' },
+      { id: 'check2', text: 'הדירה קיבלה אישור אכלוס לפני 05/11/2024', checked: true, note: '' },
+      { id: 'check3', text: 'השטח המבוקש לא עולה על 160 מ"ר', checked: true, note: 'מבוקש 160 מ"ר בדיוק' },
+      { id: 'check4', text: 'תוכנית בינוי (אדריכלית, הנדסית, פיתוח)', checked: false, note: '' },
+      { id: 'check5', text: 'מפת מדידה מעודכנת של הנכס', checked: false, note: '' },
+      { id: 'check6', text: 'חומרי גמר וצבע חזית', checked: false, note: '' },
+      { id: 'check7', text: 'דרכי גישה וחניה (אם מושפע)', checked: true, note: '' },
+      { id: 'check8', text: 'הערכת השפעה על עצים בוגרים', checked: true, note: '' },
+      { id: 'check9', text: 'אישור מט"ש אשדוד', checked: false, note: '' },
+      { id: 'check10', text: 'אישור איגוד ערים לאיכות הסביבה', checked: false, note: '' },
+      { id: 'check11', text: 'אישור פקיד יערות', checked: true, note: 'אין עצים בוגרים בשטח' }
+    ],
+    planAttachment: null,
+    visualizationImage: null,
+    lat: 31.7978,
+    lng: 34.6522
+  };
+  existing.push(seed);
+  localStorage.setItem('requests', JSON.stringify(existing));
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  seedInitialData();
+  renderNavTabs();
+  loadPersistentPageContent();
+  initializeChecklist();
+  initializeUploadZones();
+  setupViewerEvents();
+  loadRequests();
+  renderDocumentsPage();
+  setTimeout(() => { if (document.getElementById('map') && !map) initializeMap(); }, 150);
+});
+
+// ===== NAVIGATION =====
+function switchRole(role) {
+  currentRole = role;
+  document.getElementById('roleSubmitter').classList.toggle('active', role === 'submitter');
+  document.getElementById('roleReviewer').classList.toggle('active', role === 'reviewer');
+  renderNavTabs();
+  goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
+}
+
+function renderNavTabs() {
+  const tabs = currentRole === 'submitter'
+    ? [
+        { id: 'submitterDocuments', label: 'מסמכי התוכנית' },
+        { id: 'submitterInstructions', label: 'הנחיות' },
+        { id: 'submitterForm', label: 'טופס הגשה' },
+        { id: 'submitterChecklist', label: "צ'ק ליסט" },
+        { id: 'submitterTracker', label: 'מעקב' }
+      ]
+    : [
+        { id: 'reviewerDashboard', label: 'רשימת בקשות' },
+        { id: 'reviewerMap', label: 'מפת בקשות' },
+        { id: 'reviewerRequestDetail', label: 'פרטי בקשה' }
+      ];
+
+  document.getElementById('navTabs').innerHTML = tabs.map(t =>
+    `<button class="${currentPage === t.id ? 'active' : ''}" onclick="goToPage('${t.id}')">${t.label}</button>`
+  ).join('');
+
+  const toolbar = document.getElementById('editorToolbar');
+  if (currentRole === 'reviewer') toolbar.classList.remove('hidden');
+  else toolbar.classList.add('hidden');
+  document.getElementById('toggleEditBtn').textContent = editMode ? 'סגור עריכה' : 'הפעל עריכה';
+}
+
+function goToPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if (page) {
+    page.classList.add('active');
+    currentPage = pageId;
+    renderNavTabs();
+    if (pageId === 'reviewerMap') {
+      setTimeout(() => { if (map) { map.invalidateSize(); updateMapMarkers(); } }, 300);
+    }
+    if (pageId === 'submitterDocuments') renderDocumentsPage();
+  }
+}
+
+// ===== PAGE CONTENT EDIT =====
+function loadPersistentPageContent() {
+  if (!pageContent) return;
+  Object.keys(pageContent).forEach(key => {
+    const el = document.querySelector(`[data-edit-key="${key}"]`);
+    if (el) el.innerHTML = pageContent[key];
+  });
+}
+
+function toggleReviewerEdit() {
+  if (!editMode) {
+    editMode = true;
+    document.body.classList.add('editable-active');
+    document.getElementById('saveEditsBtn').classList.remove('hidden');
+    document.getElementById('cancelEditsBtn').classList.remove('hidden');
+    document.getElementById('toggleEditBtn').textContent = 'סגור עריכה';
+    document.querySelectorAll('[data-editable]').forEach(el => el.setAttribute('contenteditable', 'true'));
+    document.querySelectorAll('[data-edit-list]').forEach(renderEditableListControls);
+  } else {
+    cancelPageEdits();
+  }
+}
+
+function savePageEdits() {
+  document.querySelectorAll('[data-edit-key]').forEach(el => {
+    pageContent[el.getAttribute('data-edit-key')] = el.innerHTML;
+  });
+  localStorage.setItem('pageContent', JSON.stringify(pageContent));
+  editMode = false;
+  document.body.classList.remove('editable-active');
+  document.getElementById('saveEditsBtn').classList.add('hidden');
+  document.getElementById('cancelEditsBtn').classList.add('hidden');
+  document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
+  document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
+  document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
+}
+
+function cancelPageEdits() {
+  editMode = false;
+  document.body.classList.remove('editable-active');
+  document.getElementById('saveEditsBtn').classList.add('hidden');
+  document.getElementById('cancelEditsBtn').classList.add('hidden');
+  document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
+  loadPersistentPageContent();
+  document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
+  document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
+}
+
+function renderEditableListControls(list) {
+  if (list.querySelector('.editable-list-controls')) return;
+  const controls = document.createElement('div');
+  controls.className = 'editable-list-controls';
+  controls.innerHTML = `<button type="button" title="הוסף שורה" onclick="addEditableListItem('${list.id}')">+</button><button type="button" title="מחק אחרון" onclick="removeEditableListItem('${list.id}')">−</button>`;
+  list.parentNode.insertBefore(controls, list);
+}
+
+function addEditableListItem(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const li = document.createElement('li');
+  li.setAttribute('data-edit-key', `${listId}-item-${Date.now()}`);
+  li.setAttribute('contenteditable', 'true');
+  li.style.marginBottom = '5px';
+  li.textContent = 'שורה חדשה';
+  list.appendChild(li);
+}
+
+function removeEditableListItem(listId) {
+  const list = document.getElementById(listId);
+  if (list && list.lastElementChild) list.removeChild(list.lastElementChild);
+}
+
+// ===== DOCUMENTS PAGE =====
+function renderDocumentsPage() {
+  renderDocLinks();
+  renderDocFiles();
+  renderDocNotes();
+}
+
+function renderDocLinks() {
+  const container = document.getElementById('docLinksList');
+  if (!container) return;
+  if (!documentsContent.links.length) {
+    container.innerHTML = '<p class="doc-empty">אין קישורים שמורים עדיין.</p>';
+    return;
+  }
+  container.innerHTML = documentsContent.links.map((link, i) => `
+    <div class="doc-link-item">
+      <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener">${escapeHtml(link.title || link.url)}</a>
+      <button class="btn btn-light btn-sm" onclick="removeDocLink(${i})">הסר</button>
+    </div>
+  `).join('');
+}
+
+function renderDocFiles() {
+  const container = document.getElementById('docFilesList');
+  if (!container) return;
+  if (!documentsContent.files.length) {
+    container.innerHTML = '<p class="doc-empty">אין קבצים מצורפים עדיין.</p>';
+    return;
+  }
+  container.innerHTML = documentsContent.files.map((file, i) => {
+    const isImage = file.type && file.type.startsWith('image/');
+    const preview = isImage
+      ? `<img src="${file.data}" style="width:60px;height:44px;object-fit:cover;border-radius:3px;cursor:pointer;border:1px solid var(--border);" onclick="openImageFullscreen('${file.data}')">`
+      : `<span style="font-size:20px;">📄</span>`;
+    const openBtn = isImage
+      ? `<button class="btn btn-light btn-sm" onclick="openImageFullscreen('${file.data}')">צפה</button>`
+      : `<a class="btn btn-light btn-sm" href="${file.data}" target="_blank" download="${escapeHtml(file.name)}">פתח</a>`;
+    return `
+      <div class="doc-file-item">
+        ${preview}
+        <span style="flex:1;font-size:13px;color:var(--text-dark);">${escapeHtml(file.name)}</span>
+        ${openBtn}
+        <button class="btn btn-light btn-sm" onclick="removeDocFile(${i})">הסר</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderDocNotes() {
+  const container = document.getElementById('docNotesList');
+  if (!container) return;
+  if (!documentsContent.notes.length) {
+    container.innerHTML = '<p class="doc-empty">אין הערות עדיין.</p>';
+    return;
+  }
+  container.innerHTML = documentsContent.notes.map((note, i) => `
+    <div class="doc-note-item">
+      <div class="note-text">${escapeHtml(note.text)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px;">
+        <span class="note-meta">${note.date}</span>
+        <button class="btn btn-light btn-sm" onclick="removeDocNote(${i})">הסר</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showAddLinkForm() {
+  document.getElementById('addLinkForm').classList.remove('hidden');
+  document.getElementById('newLinkTitle').focus();
+}
+
+function hideAddLinkForm() {
+  document.getElementById('addLinkForm').classList.add('hidden');
+  document.getElementById('newLinkTitle').value = '';
+  document.getElementById('newLinkUrl').value = '';
+}
+
+function saveNewLink() {
+  const title = document.getElementById('newLinkTitle').value.trim();
+  const url = document.getElementById('newLinkUrl').value.trim();
+  if (!url) { alert('אנא הכנס כתובת URL'); return; }
+  documentsContent.links.push({ title: title || url, url, date: todayStr() });
+  saveDocuments();
+  hideAddLinkForm();
+  renderDocLinks();
+}
+
+function removeDocLink(i) {
+  documentsContent.links.splice(i, 1);
+  saveDocuments();
+  renderDocLinks();
+}
+
+function handleDocFileUpload(files) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      documentsContent.files.push({ name: file.name, type: file.type, data: e.target.result, date: todayStr() });
+      saveDocuments();
+      renderDocFiles();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('docFileInput').value = '';
+}
+
+function removeDocFile(i) {
+  documentsContent.files.splice(i, 1);
+  saveDocuments();
+  renderDocFiles();
+}
+
+function saveDocNote() {
+  const text = document.getElementById('docNewNoteText').value.trim();
+  if (!text) return;
+  documentsContent.notes.push({ text, date: todayStr() });
+  saveDocuments();
+  document.getElementById('docNewNoteText').value = '';
+  renderDocNotes();
+}
+
+function removeDocNote(i) {
+  documentsContent.notes.splice(i, 1);
+  saveDocuments();
+  renderDocNotes();
+}
+
+function saveDocuments() {
+  localStorage.setItem('documentsContent', JSON.stringify(documentsContent));
+}
+
+// ===== UPLOAD ZONES =====
+function triggerUpload(inputId, event) {
+  if (event && event.target.closest('.zone-remove, .zone-content a, .zone-content button')) return;
+  document.getElementById(inputId).click();
+}
+
+function initializeUploadZones() {
+  [['planUpload', 'planInput', 'plan'], ['visualizationUpload', 'visualizationInput', 'visualization']].forEach(([zoneId, inputId, type]) => {
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = '#f0f8ff'; });
+    zone.addEventListener('dragleave', () => { zone.style.background = ''; });
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.style.background = '';
+      if (e.dataTransfer.files.length) handleAttachmentSelect(e.dataTransfer.files[0], type);
+    });
+  });
+}
+
+function handleAttachmentSelect(file, type) {
+  const zoneId = type === 'plan' ? 'planUpload' : 'visualizationUpload';
+  const contentId = type === 'plan' ? 'planContent' : 'visualizationContent';
+  const zone = document.getElementById(zoneId);
+  const content = document.getElementById(contentId);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const src = e.target.result;
+    tempUploads[type] = { name: file.name, type: file.type, data: src };
+    zone.querySelector('.zone-prompt').style.display = 'none';
+    content.style.display = 'block';
+    const removeBtn = `<button class="zone-remove" onclick="clearUploadZone('${type}')" title="הסר">×</button>`;
+    if (file.type.startsWith('image/')) {
+      const escapedSrc = src.replace(/'/g, "\\'");
+      content.innerHTML = removeBtn + `<img src="${src}" onclick="openImageFullscreen('${escapedSrc}')" style="cursor:pointer;">`;
+    } else {
+      content.innerHTML = removeBtn + `<div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(file.name)}</span><a href="${src}" target="_blank" class="btn btn-light btn-sm" onclick="event.stopPropagation()">פתח</a></div>`;
+    }
+  };
+  reader.onerror = () => alert('שגיאה בהעלאת הקובץ. נסה שוב.');
+  reader.readAsDataURL(file);
+}
+
+function clearUploadZone(type) {
+  tempUploads[type] = null;
+  const zoneId = type === 'plan' ? 'planUpload' : 'visualizationUpload';
+  const contentId = type === 'plan' ? 'planContent' : 'visualizationContent';
+  const zone = document.getElementById(zoneId);
+  const content = document.getElementById(contentId);
+  zone.querySelector('.zone-prompt').style.display = '';
+  content.style.display = 'none';
+  content.innerHTML = '';
+  zone.style.background = '';
+}
+
+// ===== CHECKLIST =====
+function initializeChecklist() {
+  document.querySelectorAll('.checklist input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', () => {
+      const item = input.closest('.checklist-item');
+      if (item) item.classList.toggle('checked', input.checked);
+      updateChecklistProgress();
+    });
+  });
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const allChecks = document.querySelectorAll('#basicChecklist input[type="checkbox"], #documentChecklist input[type="checkbox"], #approvalsChecklist input[type="checkbox"]');
+  const checked = Array.from(allChecks).filter(c => c.checked).length;
+  const total = allChecks.length;
+  const pct = total ? (checked / total) * 100 : 0;
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = `${checked} / ${total} פריטים`;
+}
+
+function collectChecklistItems() {
+  const items = [];
+  document.querySelectorAll('#basicChecklist li[data-check-id], #documentChecklist li[data-check-id], #approvalsChecklist li[data-check-id]').forEach(li => {
+    const id = li.getAttribute('data-check-id');
+    const cb = li.querySelector('input[type="checkbox"]');
+    const label = li.querySelector('label');
+    const noteInput = li.querySelector('.checklist-note-input');
+    items.push({
+      id: id || null,
+      checked: cb ? cb.checked : false,
+      text: label ? label.innerText.trim() : '',
+      note: noteInput ? noteInput.value.trim() : ''
+    });
+  });
+  return items;
+}
+
+// ===== SUBMIT REQUEST =====
+async function submitRequest() {
+  const submitterName = document.getElementById('submitterName').value.trim();
+  const applicantName = document.getElementById('applicantName').value.trim();
+  const street = document.getElementById('propertyStreet').value.trim();
+  const buildingNum = document.getElementById('propertyBuildingNumber').value.trim();
+
+  if (!submitterName || !street || !buildingNum) {
+    alert('אנא מלאו: שם עורך הבקשה, רחוב ומספר בניין.');
+    return;
+  }
+
+  const address = street + ' ' + buildingNum;
+  const request = {
+    id: Date.now(),
+    submitterName,
+    applicantName,
+    submitterEmail: document.getElementById('submitterEmail').value.trim(),
+    submitterPhone: document.getElementById('submitterPhone').value.trim(),
+    street,
+    buildingNumber: buildingNum,
+    address,
+    gushNumber: document.getElementById('gushNumber').value.trim(),
+    helkaNumber: document.getElementById('helkaNumber').value.trim(),
+    description: document.getElementById('expansionDescription').value.trim(),
+    notes: document.getElementById('additionalNotes').value.trim(),
+    planAttachment: tempUploads.plan,
+    visualizationImage: tempUploads.visualization,
+    requirementChecklist: collectChecklistItems(),
+    status: 'pending',
+    createdAt: todayStr(),
+    comments: [],
+    approval: null,
+    summaryText: '',
+    lat: null,
+    lng: null
+  };
+
+  // Geocode without blocking
+  try {
+    const geoResult = await resolveRequestLocation(request);
+    if (geoResult.status === 'ok') {
+      request.lat = geoResult.lat;
+      request.lng = geoResult.lng;
+      finalizeRequest(request);
+    } else if (geoResult.status === 'ambiguous') {
+      openLocationModal(request, geoResult.candidates);
+    } else {
+      // not found — save without coords
+      finalizeRequest(request);
+    }
+  } catch (e) {
+    finalizeRequest(request);
+  }
+}
+
+function finalizeRequest(request) {
+  persistRequest(request);
+  resetSubmissionForm();
+  loadRequests();
+  goToPage('submitterTracker');
+  const banner = document.getElementById('submissionSuccess');
+  if (banner) {
+    banner.textContent = 'הבקשה הוגשה בהצלחה! מספר בקשה: #' + request.id;
+    banner.classList.remove('hidden');
+    setTimeout(() => banner.classList.add('hidden'), 6000);
+  }
+}
+
+function persistRequest(request) {
+  const stored = JSON.parse(localStorage.getItem('requests')) || [];
+  const idx = stored.findIndex(r => r.id === request.id);
+  if (idx >= 0) stored[idx] = request;
+  else stored.push(request);
+  localStorage.setItem('requests', JSON.stringify(stored));
+  requests = stored;
+}
+
+function resetSubmissionForm() {
+  ['submitterName','applicantName','submitterEmail','submitterPhone','propertyStreet','propertyBuildingNumber','gushNumber','helkaNumber','expansionDescription','additionalNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  clearUploadZone('plan');
+  clearUploadZone('visualization');
+  document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    const item = cb.closest('.checklist-item');
+    if (item) item.classList.remove('checked');
+  });
+  document.querySelectorAll('.checklist-note-input').forEach(inp => inp.value = '');
+  updateChecklistProgress();
+}
+
+// ===== LOAD & DISPLAY REQUESTS =====
+async function loadRequests() {
+  requests = JSON.parse(localStorage.getItem('requests')) || [];
+  await geocodeRequestsWithoutLocation();
+  renderSubmitterTracker();
+  filterRequests();
+  updateSortHeaders();
+  updateMapMarkers();
+}
+
+function renderSubmitterTracker() {
+  const tracker = document.getElementById('trackerContent');
+  if (!tracker) return;
+  if (!requests.length) {
+    tracker.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>';
+    return;
+  }
+  tracker.innerHTML = requests.map(req => `
+    <div class="tracker-item">
+      <div class="tracker-header">
+        <strong>${req.address}</strong>
+        <span class="badge badge-${req.status}">${translateStatus(req.status)}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-light);">עורך: ${req.submitterName}${req.applicantName ? ' | מבקש: ' + req.applicantName : ''}</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:3px;">הוגשה: ${req.createdAt}</div>
+      ${req.comments && req.comments.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--amber);">הערה אחרונה: ${req.comments[req.comments.length-1].text}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function filterRequests() {
+  const search = (document.getElementById('searchInput') || {value:''}).value.toLowerCase();
+  const filter = (document.getElementById('filterStatus') || {value:''}).value;
+  const filtered = requests.filter(req => {
+    const matchSearch = req.address.toLowerCase().includes(search) || req.submitterName.toLowerCase().includes(search) || (req.applicantName||'').toLowerCase().includes(search);
+    const matchFilter = !filter || req.status === filter;
+    return matchSearch && matchFilter;
+  });
+  const sorted = sortRequests(filtered);
+  renderRequestTable(sorted);
+  renderRequestEditors(requests);
+}
+
+function renderRequestTable(list) {
+  const tbody = document.getElementById('requestsBody');
+  if (!tbody) return;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">אין בקשות להצגה</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((req, idx) => `
+    <tr class="row-${req.status}">
+      <td>${String(idx + 1).padStart(3,'0')}</td>
+      <td><strong>${req.address}</strong></td>
+      <td>${req.submitterName}</td>
+      <td>${req.applicantName || '—'}</td>
+      <td><span class="badge badge-${req.status}">${translateStatus(req.status)}</span></td>
+      <td>${req.createdAt}</td>
+      <td><button class="btn btn-light btn-sm" onclick="viewRequestDetails(${req.id})">פרטים</button></td>
+    </tr>
+  `).join('');
+}
+
+function sortRequests(list) {
+  return [...list].sort((a, b) => {
+    const key = requestSort.key;
+    const ord = requestSort.order === 'asc' ? 1 : -1;
+    if (key === 'number') return ord * (a.id - b.id);
+    if (key === 'address') return ord * a.address.localeCompare(b.address, 'he');
+    if (key === 'submitterName') return ord * a.submitterName.localeCompare(b.submitterName, 'he');
+    if (key === 'applicantName') return ord * (a.applicantName||'').localeCompare(b.applicantName||'', 'he');
+    if (key === 'status') return ord * a.status.localeCompare(b.status);
+    if (key === 'createdAt') return ord * (new Date(b.createdAt) - new Date(a.createdAt));
+    return 0;
+  });
+}
+
+function setTableSort(key) {
+  requestSort.order = requestSort.key === key ? (requestSort.order === 'asc' ? 'desc' : 'asc') : 'asc';
+  requestSort.key = key;
+  updateSortHeaders();
+  filterRequests();
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll('#requestsTable th.sortable').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+    if (th.dataset.sortKey === requestSort.key) th.classList.add(requestSort.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  });
+}
+
+function renderRequestEditors(list) {
+  const container = document.getElementById('requestEditorsList');
+  if (!container) return;
+  const seen = new Set();
+  const unique = list.filter(r => { const k = r.submitterName + r.submitterEmail; if(seen.has(k)) return false; seen.add(k); return true; });
+  if (!unique.length) { container.innerHTML = '<div style="color:var(--text-light);font-size:13px;">אין עורכים.</div>'; return; }
+  container.innerHTML = unique.map(req => `
+    <div class="editor-item">
+      <span class="editor-name">${req.submitterName}</span>
+      <span class="editor-meta">${req.submitterEmail || 'אין דוא"ל'}</span>
+      ${req.submitterEmail ? `<button class="btn btn-light editor-email-btn" onclick="openEmailPreview(${req.id})">מייל</button>` : ''}
+    </div>
+  `).join('');
+}
+
+function translateStatus(s) {
+  return { pending:'ממתינה', approved:'אושרה', rejected:'דחויה' }[s] || s;
+}
+
+// ===== DETAIL PAGE =====
+function viewRequestDetails(id) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  currentDetailId = id;
+  const page = document.getElementById('reviewerRequestDetail');
+  const title = document.getElementById('detailPageTitle');
+  if (title) title.textContent = 'פרטי בקשה — ' + req.address;
+
+  const missing = (req.requirementChecklist || []).filter(i => !i.checked);
+  const checkedItems = (req.requirementChecklist || []).filter(i => i.checked);
+  const autoSummary = buildSummaryText(req);
+  const currentSummary = req.summaryText || autoSummary;
+
+  const filesHtml = buildFilesHtml(req);
+  const checklistHtml = buildChecklistHtml(req);
+  const commentsHtml = (req.comments || []).map(c => `
+    <div class="comment-item">
+      <div class="comment-text">${escapeHtml(c.text)}</div>
+      <div class="comment-date">${c.date}</div>
+    </div>
+  `).join('') || '<p style="color:var(--text-light);font-size:13px;">אין הערות עדיין.</p>';
+
+  document.getElementById('detailPageContent').innerHTML = `
+    <div class="detail-section">
+      <h4>נתוני הבקשה</h4>
+      <div class="form-row">
+        <div>
+          <div class="detail-row"><strong>כתובת:</strong> ${req.address}</div>
+          <div class="detail-row"><strong>גוש / חלקה:</strong> ${req.gushNumber||'—'} / ${req.helkaNumber||'—'}</div>
+          <div class="detail-row"><strong>מבקש:</strong> ${req.applicantName||'—'}</div>
+          <div class="detail-row"><strong>עורך בקשה:</strong> ${req.submitterName}</div>
+        </div>
+        <div>
+          <div class="detail-row"><strong>טלפון:</strong> ${req.submitterPhone||'—'}</div>
+          <div class="detail-row"><strong>דוא"ל:</strong> ${req.submitterEmail||'—'}</div>
+          <div class="detail-row"><strong>הוגשה:</strong> ${req.createdAt}</div>
+          <div class="detail-row"><strong>סטטוס:</strong> <span class="badge badge-${req.status}">${translateStatus(req.status)}</span></div>
+        </div>
+      </div>
+      ${req.description ? `<div style="margin-top:10px;font-size:13px;"><strong>תיאור:</strong> ${escapeHtml(req.description)}</div>` : ''}
+      ${req.notes ? `<div style="margin-top:6px;font-size:13px;"><strong>הערות מגיש:</strong> ${escapeHtml(req.notes)}</div>` : ''}
     </div>
 
-    <div id="locationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>אישור מיקום כתובת</h2>
-                <button class="modal-close" onclick="closeLocationModal()">×</button>
-            </div>
-            <div id="locationModalBody" style="padding: 20px;"></div>
-        </div>
+    ${filesHtml}
+    ${checklistHtml}
+
+    ${missing.length ? `<div class="detail-section" style="border-right:3px solid #e67e22;">
+      <h4 style="color:var(--amber);">פריטים חסרים / לא מולאו (${missing.length})</h4>
+      <ul style="margin-right:16px;">
+        ${missing.map(i => `<li style="font-size:13px;margin-bottom:4px;">${escapeHtml(i.text)}${i.note ? ` — <em style="color:var(--text-light);">${escapeHtml(i.note)}</em>` : ''}</li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    <div class="detail-section">
+      <h4>הערות</h4>
+      <div id="detailCommentsList">${commentsHtml}</div>
+      <div style="margin-top:12px;">
+        <textarea id="newCommentInput" style="width:100%;min-height:60px;padding:9px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;direction:rtl;resize:vertical;" placeholder="הוסף הערה חדשה..."></textarea>
+        <button class="btn btn-warning btn-sm" style="margin-top:6px;" onclick="addComment(${id})">הוסף הערה</button>
+      </div>
     </div>
 
-    <div id="imageViewerModal" class="full-screen-modal" onclick="closeImageViewer(event)">
-        <div class="viewer-card" onclick="event.stopPropagation()">
-            <button class="viewer-close" onclick="closeImageViewer(event)">×</button>
-            <div class="viewer-actions">
-                <button onclick="zoomViewer(1.25)">+</button>
-                <button onclick="zoomViewer(0.8)">-</button>
-                <button onclick="resetViewer()">איפוס</button>
-            </div>
-            <div class="viewer-image-wrapper">
-                <img id="viewerImage" class="viewer-image" src="" alt="תצוגה מלאה">
-            </div>
-        </div>
+    <div class="detail-section">
+      <h4>סיכום — ניתן לעריכה</h4>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:8px;">הסיכום נוצר אוטומטית מנתוני הבקשה. ניתן לערוך ולשמור.</p>
+      <textarea id="summaryTextarea" class="summary-textarea">${escapeHtml(currentSummary)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-light btn-sm" onclick="regenerateSummary(${id})">צור מחדש אוטומטית</button>
+        <button class="btn btn-success btn-sm" onclick="saveSummary(${id}, this)">שמור סיכום</button>
+      </div>
     </div>
-    
-    <script>
-        // ========== STATE MANAGEMENT ==========
-        let currentRole = 'submitter';
-        let currentPage = 'submitterInstructions';
-        let requests = JSON.parse(localStorage.getItem('requests')) || [];
-        let pageContent = JSON.parse(localStorage.getItem('pageContent')) || {};
-        let documentsContent = JSON.parse(localStorage.getItem('documentsContent')) || {
-            additionalLinks: [],
-            images: [],
-            freeText: ''
-        };
-        let tempUploads = {
-            plan: null,
-            consentDoc: null,
-            visualization: null,
-            registration: null,
-            instructions: null
-        };
-        let map = null;
-        let markers = [];
-        let pendingLocationRequest = null;
-        let pendingLocationCandidates = [];
-        let requestSort = { key: 'createdAt', order: 'desc' };
-        let editMode = false;
-        const ashdodCenter = [31.8067, 34.6447];
-        let viewerState = {
-            scale: 1,
-            x: 0,
-            y: 0,
-            dragging: false,
-            startX: 0,
-            startY: 0
-        };
-        
-        // ========== INITIALIZATION ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            renderNavTabs();
-            loadPersistentPageContent();
-            initializeChecklist();
-            initializeImageUpload();
-            initializeConsentUpload();
-            setupViewerEvents();
-            loadRequests();
-            setTimeout(() => {
-                if (document.getElementById('map') && !map) {
-                    initializeMap();
-                }
-            }, 100);
-        });
-        
-        // ========== NAVIGATION ==========
-        function switchRole(role) {
-            currentRole = role;
-            document.getElementById('roleSubmitter').classList.toggle('active', role === 'submitter');
-            document.getElementById('roleReviewer').classList.toggle('active', role === 'reviewer');
-            renderNavTabs();
-            goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
-        }
-        
-        function renderNavTabs() {
-            const tabs = currentRole === 'submitter' 
-                ? [
-                    { id: 'submitterInstructions', label: 'הנחיות' },
-                    { id: 'submitterForm', label: 'טופס הגשה' },
-                    { id: 'submitterChecklist', label: 'צ\'ק ליסט' },
-                    { id: 'submitterDocuments', label: 'מסמכי התוכנית' },
-                    { id: 'submitterTracker', label: 'עקוב אחר בקשה' }
-                ]
-                : [
-                    { id: 'reviewerDashboard', label: 'רשימת בקשות' },
-                    { id: 'reviewerMap', label: 'מפת בקשות' },
-                    { id: 'reviewerApproval', label: 'חוות דעת' }
-                ];
-            
-            const html = tabs.map(t => 
-                `<button class="${currentPage === t.id ? 'active' : ''}" onclick="goToPage('${t.id}')">${t.label}</button>`
-            ).join('');
-            
-            document.getElementById('navTabs').innerHTML = html;
-            document.getElementById('editorToolbar').classList.toggle('hidden', currentRole !== 'reviewer');
-            document.getElementById('toggleEditBtn').textContent = editMode ? 'סגור עריכה' : 'הפעל עריכה';
-        }
-        
-        function loadPersistentPageContent() {
-            if (!pageContent || typeof pageContent !== 'object') return;
-            Object.keys(pageContent).forEach(key => {
-                const el = document.querySelector(`[data-edit-key="${key}"]`);
-                if (el) {
-                    el.innerHTML = pageContent[key];
-                }
-            });
-        }
 
-        function savePageEdits() {
-            document.querySelectorAll('[data-edit-key]').forEach(el => {
-                pageContent[el.getAttribute('data-edit-key')] = el.innerHTML;
-            });
-            localStorage.setItem('pageContent', JSON.stringify(pageContent));
-            editMode = false;
-            document.body.classList.remove('editable-active');
-            document.getElementById('saveEditsBtn').classList.add('hidden');
-            document.getElementById('cancelEditsBtn').classList.add('hidden');
-            document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
-            document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
-            document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
-            alert('✅ כל השינויים שמרו בהצלחה ויישמרו גם אחרי סגירה');
-        }
+    <div class="detail-section">
+      <h4>החלטה</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-success btn-sm" onclick="makeDecision(${id},'approved')">אשר בקשה</button>
+        <button class="btn btn-danger btn-sm" onclick="makeDecision(${id},'rejected')">דחה בקשה</button>
+        <button class="btn btn-light btn-sm" onclick="makeDecision(${id},'pending')">החזר לממתין</button>
+        <button class="btn btn-light btn-sm" onclick="openEmailPreview(${id})">שלח מייל לעורך</button>
+      </div>
+    </div>
+  `;
 
-        function cancelPageEdits() {
-            editMode = false;
-            document.body.classList.remove('editable-active');
-            document.getElementById('saveEditsBtn').classList.add('hidden');
-            document.getElementById('cancelEditsBtn').classList.add('hidden');
-            document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
-            loadPersistentPageContent();
-            document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
-            document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
-        }
+  if (currentRole !== 'reviewer') switchRole('reviewer');
+  goToPage('reviewerRequestDetail');
+}
 
-        function toggleReviewerEdit() {
-            if (!editMode) {
-                editMode = true;
-                document.body.classList.add('editable-active');
-                document.getElementById('saveEditsBtn').classList.remove('hidden');
-                document.getElementById('cancelEditsBtn').classList.remove('hidden');
-                document.getElementById('toggleEditBtn').textContent = 'סגור עריכה';
-                document.querySelectorAll('[data-editable]').forEach(el => el.setAttribute('contenteditable', 'true'));
-                document.querySelectorAll('[data-edit-list]').forEach(renderEditableListControls);
-            } else {
-                cancelPageEdits();
-            }
-        }
+function buildFilesHtml(req) {
+  const items = [];
+  if (req.planAttachment) {
+    const isImg = req.planAttachment.type && req.planAttachment.type.startsWith('image/');
+    if (isImg) {
+      const s = req.planAttachment.data.replace(/'/g,"\\'");
+      items.push(`<div><strong style="font-size:12px;">תוכנית בינוי:</strong><br><img src="${req.planAttachment.data}" style="max-width:100%;max-height:180px;border-radius:4px;cursor:pointer;margin-top:6px;border:1px solid var(--border);" onclick="openImageFullscreen('${s}')"></div>`);
+    } else {
+      items.push(`<div><strong style="font-size:12px;">תוכנית בינוי:</strong> <a href="${req.planAttachment.data}" target="_blank" class="btn btn-light btn-sm" download="${req.planAttachment.name}">${escapeHtml(req.planAttachment.name)}</a></div>`);
+    }
+  }
+  if (req.visualizationImage) {
+    const isImg = req.visualizationImage.type && req.visualizationImage.type.startsWith('image/');
+    if (isImg) {
+      const s = req.visualizationImage.data.replace(/'/g,"\\'");
+      items.push(`<div><strong style="font-size:12px;">הדמייה:</strong><br><img src="${req.visualizationImage.data}" style="max-width:100%;max-height:180px;border-radius:4px;cursor:pointer;margin-top:6px;border:1px solid var(--border);" onclick="openImageFullscreen('${s}')"></div>`);
+    } else {
+      items.push(`<div><strong style="font-size:12px;">הדמייה:</strong> <a href="${req.visualizationImage.data}" target="_blank" class="btn btn-light btn-sm" download="${req.visualizationImage.name}">${escapeHtml(req.visualizationImage.name)}</a></div>`);
+    }
+  }
+  if (!items.length) return '';
+  return `<div class="detail-section"><h4>קבצים מצורפים</h4><div style="display:grid;gap:12px;">${items.join('')}</div></div>`;
+}
 
-        function renderEditableListControls(list) {
-            if (list.querySelector('.editable-list-controls')) return;
-            const controls = document.createElement('div');
-            controls.className = 'editable-list-controls';
-            controls.innerHTML = `
-                <button type="button" title="הוסף שורה" onclick="addEditableListItem('${list.id}')">+</button>
-                <button type="button" title="בטל עריכה" onclick="removeEditableListItem('${list.id}')">-</button>
-            `;
-            list.parentNode.insertBefore(controls, list);
-        }
+function buildChecklistHtml(req) {
+  if (!req.requirementChecklist || !req.requirementChecklist.length) return '';
+  const checked = req.requirementChecklist.filter(i => i.checked).length;
+  const total = req.requirementChecklist.length;
+  const rows = req.requirementChecklist.map(item => {
+    const icon = item.checked ? '<span style="color:#1a7340;font-weight:700;">✓</span>' : '<span style="color:#c0392b;font-weight:700;">✗</span>';
+    return `<tr>
+      <td style="padding:6px 8px;">${icon}</td>
+      <td style="padding:6px 8px;font-size:13px;">${escapeHtml(item.text)}</td>
+      <td style="padding:6px 8px;font-size:12px;color:var(--text-light);">${item.note ? escapeHtml(item.note) : ''}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="detail-section">
+    <h4>צ׳ק ליסט (${checked}/${total})</h4>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead style="background:var(--light-bg);">
+        <tr><th style="padding:6px 8px;text-align:right;font-size:12px;width:30px;"></th><th style="padding:6px 8px;text-align:right;font-size:12px;">פריט</th><th style="padding:6px 8px;text-align:right;font-size:12px;">הערה</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
 
-        function addEditableListItem(listId) {
-            const list = document.getElementById(listId);
-            if (!list) return;
-            const li = document.createElement('li');
-            li.className = 'checklist-item';
-            li.setAttribute('data-edit-key', `${listId}-item-${Date.now()}`);
-            li.innerHTML = `
-                <input type="checkbox" />
-                <label contenteditable="true">הוסף שורה חדשה</label>
-            `;
-            list.appendChild(li);
-        }
+function buildSummaryText(req) {
+  const missing = (req.requirementChecklist || []).filter(i => !i.checked);
+  const approvalNotes = req.approval && req.approval.notes ? req.approval.notes : '';
+  let txt = `סיכום בקשה\n`;
+  txt += `==================\n`;
+  txt += `כתובת: ${req.address}\n`;
+  txt += `גוש: ${req.gushNumber||'—'} | חלקה: ${req.helkaNumber||'—'}\n`;
+  txt += `מבקש: ${req.applicantName||'—'}\n`;
+  txt += `עורך הבקשה: ${req.submitterName}\n`;
+  txt += `תאריך הגשה: ${req.createdAt}\n\n`;
+  if (req.description) txt += `תיאור: ${req.description}\n\n`;
 
-        function removeEditableListItem(listId) {
-            const list = document.getElementById(listId);
-            if (!list || list.children.length === 0) return;
-            const last = list.lastElementChild;
-            if (last) list.removeChild(last);
-        }
+  if (req.status === 'approved') {
+    txt += `החלטה: הבקשה אושרה.\n`;
+    if (approvalNotes) txt += `פרטים: ${approvalNotes}\n`;
+  } else if (req.status === 'rejected') {
+    txt += `החלטה: הבקשה נדחתה.\n`;
+    if (missing.length) {
+      txt += `סיבות:\n`;
+      missing.forEach(i => { txt += `  - ${i.text}`; if(i.note) txt += ` (${i.note})`; txt += '\n'; });
+    }
+    if (approvalNotes) txt += `הערות נוספות: ${approvalNotes}\n`;
+  } else {
+    txt += `סטטוס: ממתינה לאישור.\n`;
+    if (missing.length) {
+      txt += `פריטים שטרם מולאו:\n`;
+      missing.forEach(i => { txt += `  - ${i.text}`; if(i.note) txt += ` (${i.note})`; txt += '\n'; });
+    }
+  }
 
-        function initializeConsentUpload() {
-            const consentInput = document.getElementById('consentInput');
-            if (!consentInput) return;
-            consentInput.addEventListener('change', (e) => {
-                if (e.target.files.length) {
-                    handleAttachmentSelect(e.target.files[0], 'consent');
-                }
-            });
-        }
+  if (req.notes) txt += `\nהערות מגיש: ${req.notes}\n`;
 
-        function toggleConsentUpload() {
-            const consentGroup = document.getElementById('consentUploadGroup');
-            const value = document.getElementById('tenantConsent').value;
-            consentGroup.classList.toggle('hidden', value !== 'yes');
-        }
+  const comments = req.comments || [];
+  if (comments.length) {
+    txt += `\nהיסטוריית הערות:\n`;
+    comments.forEach(c => { txt += `[${c.date}] ${c.text}\n`; });
+  }
+  return txt;
+}
 
-        function handleAttachmentSelect(file, type) {
-            const previewId = {
-                plan: 'planPreview',
-                consent: 'consentPreview',
-                visualization: 'visualizationPreview',
-                registration: 'registrationPreview',
-                instructions: 'instructionsPreview'
-            }[type];
-            const preview = document.getElementById(previewId);
-            const statusHtml = `<div class="upload-status" style="margin-top: 10px; color: var(--success);">הקובץ ${file.name} נבחר ומועלה...</div>`;
-            preview.innerHTML = statusHtml;
-            const reader = new FileReader();
-            const textTypes = [/^text\//, /\.txt$/i, /\.md$/i, /\.csv$/i];
-            const isText = textTypes.some(rx => rx.test(file.type || file.name));
-            reader.onload = (e) => {
-                const src = e.target.result;
-                tempUploads[type] = {
-                    name: file.name,
-                    type: file.type,
-                    data: src,
-                    textContent: type === 'instructions' && isText ? src : null
-                };
-                let previewHTML = '';
-                if (type === 'instructions') {
-                    const message = isText ? 'תוכן הקובץ זמין לחיפוש' : 'הקובץ נשמר אך חיפוש פועל רק על קבצי טקסט';
-                    previewHTML = `<div class="upload-preview"><p style="color: var(--text-dark);">הועלה קובץ הוראות: ${file.name}</p></div><div class="upload-status" style="color: var(--success);">${message}</div>`;
-                } else if (file.type.startsWith('image/')) {
-                    previewHTML = `<div class="upload-preview"><img src="${src}" alt="קובץ ${type}" onclick="openImageFullscreen('${src}')"></div><div class="upload-status" style="color: var(--success);">הועלה בהצלחה: ${file.name}</div>`;
-                } else {
-                    previewHTML = `<div class="upload-preview"><p style="color: var(--text-dark);">הועלה קובץ: ${file.name}</p></div><div class="upload-status" style="color: var(--success);">סוג קובץ נתמך: ${file.type || 'לא ידוע'}</div>`;
-                }
-                preview.innerHTML = previewHTML;
-                const fullscreenBtn = document.getElementById('openPlanFullscreenBtn');
-                if (type === 'plan') {
-                    fullscreenBtn.classList.toggle('hidden', !file.type.startsWith('image/'));
-                }
-            };
-            reader.onerror = () => {
-                preview.innerHTML = `<div class="upload-status" style="color: #e74c3c;">העלאה נכשלה: ${file.name}. נסו שוב או בחרו קובץ אחר.</div>`;
-            };
-            try {
-                if (type === 'instructions' && isText) {
-                    reader.readAsText(file, 'UTF-8');
-                } else {
-                    reader.readAsDataURL(file);
-                }
-            } catch (err) {
-                preview.innerHTML = `<div class="upload-status" style="color: #e74c3c;">שגיאה בהעלאה: ${file.name}. נסו שוב.</div>`;
-            }
-        }
+function saveSummary(id, btn) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  req.summaryText = document.getElementById('summaryTextarea').value;
+  persistRequest(req);
+  if (btn) { btn.textContent = 'נשמר ✓'; setTimeout(() => { btn.textContent = 'שמור סיכום'; }, 2000); }
+}
 
-        function openPlanFullscreen() {
-            if (!tempUploads.plan) {
-                alert('אין תוכנית פתוחה להצגה. העלו קודם תוכנית.');
-                return;
-            }
-            if (tempUploads.plan.type.startsWith('image/')) {
-                openImageFullscreen(tempUploads.plan.data);
-                return;
-            }
-            window.open(tempUploads.plan.data, '_blank');
-        }
+function regenerateSummary(id) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  document.getElementById('summaryTextarea').value = buildSummaryText(req);
+}
 
-        function initializeImageUpload() {
-            const mappings = [
-                { upload: 'planUpload', input: 'planInput', type: 'plan' },
-                { upload: 'visualizationUpload', input: 'visualizationInput', type: 'visualization' },
-                { upload: 'registrationUpload', input: 'registrationInput', type: 'registration' },
-                { upload: 'instructionsUpload', input: 'instructionsInput', type: 'instructions' }
-            ];
-            mappings.forEach(map => {
-                const upload = document.getElementById(map.upload);
-                const input = document.getElementById(map.input);
-                if (!upload || !input) return;
-                upload.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    upload.style.background = '#f0f8ff';
-                });
-                upload.addEventListener('dragleave', () => {
-                    upload.style.background = '';
-                });
-                upload.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        handleAttachmentSelect(files[0], map.type);
-                    }
-                });
-                input.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        handleAttachmentSelect(e.target.files[0], map.type);
-                    }
-                });
-            });
-        }
+function addComment(id) {
+  const req = requests.find(r => r.id === id);
+  const input = document.getElementById('newCommentInput');
+  if (!req || !input || !input.value.trim()) { alert('הכנס הערה'); return; }
+  if (!req.comments) req.comments = [];
+  req.comments.push({ text: input.value.trim(), date: todayStr() });
+  persistRequest(req);
+  input.value = '';
+  viewRequestDetails(id);
+}
 
-        function setupViewerEvents() {
-            const img = document.getElementById('viewerImage');
-            img.addEventListener('pointerdown', (e) => {
-                viewerState.dragging = true;
-                viewerState.startX = e.clientX - viewerState.x;
-                viewerState.startY = e.clientY - viewerState.y;
-                img.setPointerCapture(e.pointerId);
-            });
-            img.addEventListener('pointermove', (e) => {
-                if (!viewerState.dragging) return;
-                viewerState.x = e.clientX - viewerState.startX;
-                viewerState.y = e.clientY - viewerState.startY;
-                updateViewerTransform();
-            });
-            img.addEventListener('pointerup', (e) => {
-                viewerState.dragging = false;
-                img.releasePointerCapture(e.pointerId);
-            });
-            img.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY < 0 ? 1.15 : 0.87;
-                zoomViewer(delta);
-            });
-        }
+function makeDecision(id, decision) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  const summaryEl = document.getElementById('summaryTextarea');
+  req.status = decision;
+  req.approval = { date: todayStr(), decision, notes: summaryEl ? summaryEl.value : '' };
+  req.summaryText = summaryEl ? summaryEl.value : '';
+  persistRequest(req);
+  loadRequests();
+  viewRequestDetails(id);
+}
 
-        function openImageFullscreen(src) {
-            const modal = document.getElementById('imageViewerModal');
-            const viewer = document.getElementById('viewerImage');
-            viewer.src = src;
-            viewerState.scale = 1;
-            viewerState.x = 0;
-            viewerState.y = 0;
-            updateViewerTransform();
-            modal.classList.add('active');
-        }
+// ===== EMAIL =====
+function openEmailPreview(id) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  const summaryEl = document.getElementById('summaryTextarea');
+  const summaryText = summaryEl ? summaryEl.value : (req.summaryText || buildSummaryText(req));
+  const missing = (req.requirementChecklist || []).filter(i => !i.checked).map(i => i.text);
+  const missingTxt = missing.length ? `\nפריטים שטרם מולאו:\n- ${missing.join('\n- ')}\n` : '';
+  const body = `שלום ${req.submitterName},\n\nהבקשה לכתובת ${req.address} נבדקה.\n${missingTxt}\nסיכום:\n${summaryText}\n\nבברכה,\nאדריכלית העיר`;
+  const subject = `עדכון בקשת תוכנית — ${req.address}`;
+  const to = req.submitterEmail || '';
 
-        function closeImageViewer(event) {
-            if (event) {
-                event.stopPropagation();
-            }
-            document.getElementById('imageViewerModal').classList.remove('active');
-        }
+  pendingEmailData = { to, subject, body, id };
+  document.getElementById('previewEmailTo').textContent = to || '(אין כתובת דוא"ל)';
+  document.getElementById('previewEmailSubject').textContent = subject;
+  document.getElementById('previewEmailBody').value = body;
+  document.getElementById('emailPreviewModal').classList.add('active');
+}
 
-        function zoomViewer(factor) {
-            viewerState.scale = Math.min(4, Math.max(0.6, viewerState.scale * factor));
-            updateViewerTransform();
-        }
+function sendPreviewedEmail() {
+  if (!pendingEmailData) return;
+  const to = pendingEmailData.to;
+  const subject = document.getElementById('previewEmailSubject').textContent;
+  const body = document.getElementById('previewEmailBody').value;
+  if (!to) { alert('אין כתובת דוא"ל לשליחה'); return; }
+  window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  closeEmailPreview();
+}
 
-        function resetViewer() {
-            viewerState.scale = 1;
-            viewerState.x = 0;
-            viewerState.y = 0;
-            updateViewerTransform();
-        }
+function closeEmailPreview() {
+  document.getElementById('emailPreviewModal').classList.remove('active');
+  pendingEmailData = null;
+}
 
-        function updateViewerTransform() {
-            const viewer = document.getElementById('viewerImage');
-            viewer.style.transform = `translate(${viewerState.x}px, ${viewerState.y}px) scale(${viewerState.scale})`;
-        }
+// ===== LOCATION MODAL =====
+function openLocationModal(request, candidates) {
+  pendingLocationRequest = request;
+  pendingLocationCandidates = candidates || [];
+  const body = document.getElementById('locationModalBody');
+  if (!candidates || !candidates.length) {
+    body.innerHTML = `<p style="margin-bottom:12px;">לא נמצאו תוצאות לכתובת: <strong>${request.address}</strong>.</p><div class="modal-actions"><button class="btn btn-primary" onclick="skipLocationAndSave()">שמור ללא מיקום במפה</button><button class="btn btn-light" onclick="closeLocationModal()">ביטול</button></div>`;
+  } else {
+    const opts = candidates.map((c, i) => `
+      <div class="location-option">
+        <label><input type="radio" name="locCand" value="${i}" ${i===0?'checked':''}> <div><strong>${c.display_name}</strong><br><small style="color:var(--text-light);">${c.type||''}${c.address.city||c.address.town ? ' · '+(c.address.city||c.address.town) : ''}</small></div></label>
+      </div>`).join('');
+    body.innerHTML = `<p style="margin-bottom:12px;">נמצאו מספר תוצאות עבור: <strong>${request.address}</strong>. בחרו מיקום:</p><div style="margin-bottom:14px;">${opts}</div><div class="modal-actions"><button class="btn btn-primary" onclick="confirmPendingLocation()">אשר מיקום</button><button class="btn btn-light" onclick="skipLocationAndSave()">שמור ללא מיקום</button><button class="btn btn-light" onclick="closeLocationModal()">ביטול</button></div>`;
+  }
+  document.getElementById('locationModal').classList.add('active');
+}
 
-        function goToPage(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            
-            // Show selected page
-            const page = document.getElementById(pageId);
-            if (page) {
-                page.classList.add('active');
-                currentPage = pageId;
-                renderNavTabs();
-                
-                // Refresh map if needed
-                if (pageId === 'reviewerMap') {
-                    setTimeout(() => {
-                        if (map) {
-                            map.invalidateSize();
-                            map.setView(ashdodCenter, 15);
-                        }
-                    }, 300);
-                }
-            }
-        }
-        
-        // ========== CHECKLIST ==========
-        function initializeChecklist() {
-            document.querySelectorAll('.checklist input[type="checkbox"]').forEach(input => {
-                input.addEventListener('change', updateChecklistProgress);
-            });
-            updateChecklistProgress();
-        }
-        
-        function updateChecklistProgress() {
-            const allChecks = document.querySelectorAll('#basicChecklist input, #documentChecklist input, #approvalsChecklist input');
-            const checked = Array.from(allChecks).filter(c => c.checked).length;
-            const total = allChecks.length;
-            
-            allChecks.forEach(check => {
-                const item = check.closest('.checklist-item');
-                if (!item) return;
-                item.classList.toggle('met', check.checked);
-                item.classList.toggle('unmet', !check.checked);
-            });
-            
-            const percent = (checked / total) * 100;
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = `${checked} / ${total}`;
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = checked < total;
-            submitBtn.textContent = checked === total ? 'מכל הפריטים נבדקו ✓' : `בדיקת ${total - checked} פריטים נוספים`;
-        }
+function skipLocationAndSave() {
+  if (!pendingLocationRequest) return;
+  finalizeRequest(pendingLocationRequest);
+  pendingLocationRequest = null;
+  pendingLocationCandidates = [];
+  closeLocationModal();
+}
 
-        function collectChecklistItems() {
-            const items = [];
-            document.querySelectorAll('#basicChecklist li, #documentChecklist li, #approvalsChecklist li').forEach(li => {
-                const checkbox = li.querySelector('input[type="checkbox"]');
-                const label = li.querySelector('label');
-                items.push({
-                    checked: checkbox ? checkbox.checked : false,
-                    text: label ? label.innerText.trim() : '',
-                    id: checkbox ? checkbox.id : null
-                });
-            });
-            return items;
-        }
+function closeLocationModal() {
+  document.getElementById('locationModal').classList.remove('active');
+}
 
-        // ========== SUBMIT REQUEST ==========
-        async function submitRequest() {
-            const name = document.getElementById('submitterName').value;
-            const email = document.getElementById('submitterEmail').value;
-            const address = document.getElementById('propertyAddress').value;
-            const current = document.getElementById('currentArea').value;
-            const requested = document.getElementById('requestedArea').value;
-            
-            if (!name || !email || !address || !current || !requested) {
-                alert('⚠️ אנא מלאו את כל השדות החובה');
-                return;
-            }
-            
-            const consentStatus = document.getElementById('tenantConsent').value;
-            if (consentStatus === 'yes' && !tempUploads.consentDoc) {
-                alert('⚠️ יש להעלות מסמך הסכמה לפני שליחה');
-                return;
-            }
+async function confirmPendingLocation() {
+  const sel = document.querySelector('input[name="locCand"]:checked');
+  if (!sel) { alert('בחרו מיקום'); return; }
+  const idx = parseInt(sel.value, 10);
+  const chosen = pendingLocationCandidates[idx];
+  if (!chosen) { alert('שגיאה. נסו שוב.'); return; }
+  pendingLocationRequest.lat = parseFloat(chosen.lat);
+  pendingLocationRequest.lng = parseFloat(chosen.lon);
+  finalizeRequest(pendingLocationRequest);
+  pendingLocationRequest = null;
+  pendingLocationCandidates = [];
+  closeLocationModal();
+}
 
-            const request = {
-                id: Date.now(),
-                submitterName: name,
-                submitterEmail: email,
-                submitterPhone: document.getElementById('submitterPhone').value,
-                address: address,
-                gushNumber: document.getElementById('gushNumber').value,
-                helkaNumber: document.getElementById('helkaNumber').value,
-                currentArea: current,
-                requestedArea: requested,
-                description: document.getElementById('expansionDescription').value,
-                notes: document.getElementById('additionalNotes').value,
-                tenantConsent: consentStatus,
-                consentDocument: tempUploads.consentDoc,
-                planAttachment: tempUploads.plan,
-                visualizationImage: tempUploads.visualization,
-                registrationImage: tempUploads.registration,
-                programInstructions: tempUploads.instructions,
-                requirementChecklist: collectChecklistItems(),
-                status: 'pending',
-                createdAt: new Date().toLocaleDateString('he-IL'),
-                comments: [],
-                approval: null
-            };
+// ===== GEOCODING =====
+async function geocodeFullAddress(address) {
+  const enc = encodeURIComponent(address + ', אשדוד, ישראל');
+  const url = `https://nominatim.openstreetmap.org/search?q=${enc}&format=json&addressdetails=1&limit=5&accept-language=he`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return [];
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch { return []; }
+}
 
-            const geoResult = await resolveRequestLocation(request);
-            if (geoResult.status === 'ok') {
-                request.lat = geoResult.lat;
-                request.lng = geoResult.lng;
-                saveRequest(request);
-            } else if (geoResult.status === 'ambiguous') {
-                openLocationModal(request, geoResult.candidates);
-                return;
-            } else {
-                alert('⚠️ לא נמצאה התאמה ברורה לכתובת. אנא בדקו ותקנו את הכתובת לפני שליחה.');
-                return;
-            }
-        }
+function normalizeAddress(t) {
+  return t.toLowerCase().replace(/\s+/g,' ').replace(/[^a-z0-9א-ת\-]/gi,'').trim();
+}
 
-        function persistRequest(request) {
-            const existingIndex = requests.findIndex(r => r.id === request.id);
-            if (existingIndex >= 0) {
-                requests[existingIndex] = request;
-            } else {
-                requests.push(request);
-            }
-            localStorage.setItem('requests', JSON.stringify(requests));
-        }
+function addressLooksExact(address, result) {
+  const norm = normalizeAddress(address);
+  const disp = normalizeAddress(result.display_name || '');
+  return norm.split(' ').every(p => p && disp.includes(p));
+}
 
-        function resetSubmissionForm() {
-            document.querySelectorAll('.form-group input, .form-group textarea, .form-group select').forEach(el => {
-                el.value = '';
-            });
-            document.getElementById('planPreview').innerHTML = '';
-            document.getElementById('consentPreview').innerHTML = '';
-            document.getElementById('visualizationPreview').innerHTML = '';
-            document.getElementById('registrationPreview').innerHTML = '';
-            document.getElementById('instructionsPreview').innerHTML = '';
-            document.getElementById('instructionsSearchResults').innerHTML = '';
-            document.getElementById('consentUploadGroup').classList.add('hidden');
-            tempUploads = { plan: null, consentDoc: null, visualization: null, registration: null, instructions: null };
-        }
+async function resolveRequestLocation(request) {
+  const results = await geocodeFullAddress(request.address);
+  if (!results.length) return { status: 'not_found' };
+  if (results.length === 1 && addressLooksExact(request.address, results[0])) {
+    return { status: 'ok', lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
+  }
+  const exact = results.filter(r => addressLooksExact(request.address, r));
+  if (exact.length === 1) return { status: 'ok', lat: parseFloat(exact[0].lat), lng: parseFloat(exact[0].lon) };
+  return { status: 'ambiguous', candidates: results };
+}
 
-        function searchInstructionsDoc() {
-            const query = document.getElementById('instructionsSearchInput').value.trim();
-            const resultsContainer = document.getElementById('instructionsSearchResults');
-            if (!query) {
-                resultsContainer.innerHTML = '<span style="color: var(--text-light);">הזן מילה לחיפוש.</span>';
-                return;
-            }
-            const instructions = tempUploads.instructions;
-            if (!instructions) {
-                resultsContainer.innerHTML = '<span style="color: var(--secondary);">אנא העלה תחילה את מסמך הוראות התוכנית.</span>';
-                return;
-            }
-            if (!instructions.textContent) {
-                resultsContainer.innerHTML = '<span style="color: var(--secondary);">הקובץ אינו תומך בחיפוש מלא. העלה קובץ טקסט כדי לחפש מילים.</span>';
-                return;
-            }
-            const found = findKeywordMatches(instructions.textContent, query);
-            if (!found.length) {
-                resultsContainer.innerHTML = `<span style="color: var(--secondary);">לא נמצאו הופעות של "${query}" במסמך.</span>`;
-                return;
-            }
-            resultsContainer.innerHTML = `<div style="color: var(--text-dark); font-size: 14px;">נמצאו ${found.length} הופעות של "${query}":</div>${found.map(line => `<div style="margin-top: 8px; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid rgba(0,0,0,0.06);">${line}</div>`).join('')}`;
-        }
+async function geocodeRequestsWithoutLocation() {
+  let changed = false;
+  for (const req of requests) {
+    if (req.lat && req.lng) continue;
+    try {
+      const r = await resolveRequestLocation(req);
+      if (r.status === 'ok') { req.lat = r.lat; req.lng = r.lng; changed = true; }
+    } catch {}
+  }
+  if (changed) localStorage.setItem('requests', JSON.stringify(requests));
+}
 
-        function findKeywordMatches(text, query) {
-            const normalized = text.replace(/\r/g, '');
-            const lines = normalized.split('\n');
-            const regex = new RegExp(`(.{0,40}${query}.{0,40})`, 'gi');
-            const matches = [];
-            lines.forEach(line => {
-                let match;
-                while ((match = regex.exec(line)) !== null) {
-                    matches.push(match[1].trim());
-                    if (matches.length >= 5) break;
-                }
-            });
-            return matches;
-        }
+// ===== MAP =====
+function initializeMap() {
+  map = L.map('map').setView(ashdodCenter, 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+  updateMapMarkers();
+}
 
-        function searchRequestInstructions(id) {
-            const request = requests.find(r => r.id === id);
-            const query = document.getElementById('detailInstructionsSearchInput').value.trim();
-            const resultsContainer = document.getElementById('detailInstructionsSearchResults');
-            if (!request || !request.programInstructions) {
-                resultsContainer.innerHTML = '<span style="color: var(--secondary);">אין מסמך הוראות לחיפוש.</span>';
-                return;
-            }
-            if (!query) {
-                resultsContainer.innerHTML = '<span style="color: var(--text-light);">הזן מילה לחיפוש.</span>';
-                return;
-            }
-            const text = request.programInstructions.textContent;
-            if (!text) {
-                resultsContainer.innerHTML = '<span style="color: var(--secondary);">הקובץ אינו מאפשר חיפוש טקסטואלי.</span>';
-                return;
-            }
-            const found = findKeywordMatches(text, query);
-            if (!found.length) {
-                resultsContainer.innerHTML = `<span style="color: var(--secondary);">לא נמצאו הופעות של "${query}" במסמך.</span>`;
-                return;
-            }
-            resultsContainer.innerHTML = `<div style="color: var(--text-dark); font-size: 14px;">נמצאו ${found.length} הופעות של "${query}":</div>${found.map(line => `<div style="margin-top: 8px; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid rgba(0,0,0,0.06);">${line}</div>`).join('')}`;
-        }
+function updateMapMarkers() {
+  if (!map) return;
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  requests.forEach((req, idx) => {
+    if (!req.lat || !req.lng) return;
+    const colorMap = { pending: '#e67e22', approved: '#1a7340', rejected: '#c0392b' };
+    const m = L.circleMarker([parseFloat(req.lat), parseFloat(req.lng)], {
+      radius: 9, fillColor: colorMap[req.status] || '#888', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
+    }).addTo(map);
+    const emailBtn = req.submitterEmail
+      ? `<button onclick="openEmailPreview(${req.id})" style="width:100%;margin-top:6px;padding:5px;font-size:12px;background:#1a3a52;color:white;border:none;border-radius:3px;cursor:pointer;">שלח מייל</button>`
+      : '';
+    m.bindPopup(`<div dir="rtl" style="min-width:160px;"><strong>${req.address}</strong><br><span style="font-size:12px;">${req.submitterName}</span><br><span style="font-size:11px;color:#666;">${req.applicantName||''}</span><br><span style="font-size:12px;font-weight:700;color:${colorMap[req.status]}">${translateStatus(req.status)}</span><br><button onclick="viewRequestDetails(${req.id})" style="width:100%;margin-top:6px;padding:5px;font-size:12px;background:white;border:1px solid #ddd;border-radius:3px;cursor:pointer;">פרטים</button>${emailBtn}</div>`);
+    markers.push(m);
+  });
+}
 
-        function saveRequest(request) {
-            persistRequest(request);
-            alert('✅ בקשה הוגשה בהצלחה! מספר בקשה: #' + request.id);
-            resetSubmissionForm();
-            goToPage('submitterTracker');
-            loadRequests();
-        }
-        
-        // ========== LOAD AND DISPLAY REQUESTS ==========
-        async function loadRequests() {
-            requests = JSON.parse(localStorage.getItem('requests')) || [];
-            await geocodeRequestsWithoutLocation();
-            renderSubmitterTracker();
-            filterRequests();
-            updateSortHeaders();
-            updateMapMarkers();
-        }
+// ===== IMAGE VIEWER =====
+function openImageFullscreen(src) {
+  const modal = document.getElementById('imageViewerModal');
+  const img = document.getElementById('viewerImage');
+  img.src = src;
+  viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
+  updateViewerTransform();
+  modal.classList.add('active');
+}
 
-        function renderSubmitterTracker() {
-            const tracker = document.getElementById('trackerContent');
-            if (requests.length === 0) {
-                tracker.innerHTML = '<p style="color: var(--text-light); text-align: center;">אין לך בקשות פעילות עדיין.</p>';
-                return;
-            }
-            tracker.innerHTML = requests.map((req, idx) => `
-                <div style="background: white; padding: 20px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <strong>${formatRequestNumber(idx + 1)} · ${req.address}</strong>
-                        <span class="status-badge status-${req.status}">${translateStatus(req.status)}</span>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 14px; color: var(--text-light);">מ-${req.currentArea} מ"ר ל-${req.requestedArea} מ"ר</p>
-                    <p style="margin: 5px 0; font-size: 12px; color: var(--text-light);">הוגשה: ${req.createdAt}</p>
-                    ${req.comments.length > 0 ? `<p style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); color: var(--warning); font-weight: 600;">הערה: ${req.comments[req.comments.length - 1].text}</p>` : ''}
-                </div>
-            `).join('');
-        }
+function closeImageViewer(event) {
+  if (event) event.stopPropagation();
+  document.getElementById('imageViewerModal').classList.remove('active');
+}
 
-        function filterRequests() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const filter = document.getElementById('filterStatus').value;
-            const filtered = requests.filter(req => {
-                const matchesSearch = req.address.toLowerCase().includes(search) || req.submitterName.toLowerCase().includes(search);
-                const matchesFilter = !filter || req.status === filter;
-                return matchesSearch && matchesFilter;
-            });
-            const sorted = sortRequests(filtered);
-            renderRequestTable(sorted);
-            renderRequestEditors(requests);
-        }
+function zoomViewer(f) {
+  viewerState.scale = Math.min(4, Math.max(0.5, viewerState.scale * f));
+  updateViewerTransform();
+}
 
-        function renderRequestTable(list) {
-            const tbody = document.getElementById('requestsBody');
-            if (!list.length) {
-                tbody.innerHTML = '<tr style="text-align: center;"><td colspan="7" style="color: var(--text-light); padding: 30px;">אין בקשות להצגה</td></tr>';
-                return;
-            }
-            tbody.innerHTML = list.map((req, idx) => `
-                <tr class="status-${req.status}">
-                    <td>${formatRequestNumber(idx + 1)}</td>
-                    <td><strong>${req.address}</strong></td>
-                    <td>${req.submitterName}</td>
-                    <td>${req.currentArea} → ${req.requestedArea}</td>
-                    <td><span class="status-badge status-${req.status}">${translateStatus(req.status)}</span></td>
-                    <td>${req.createdAt}</td>
-                    <td>
-                        <button class="btn btn-light" style="padding: 6px 12px; font-size: 12px;" onclick="viewRequestDetails(${req.id})">צפה בפרטים</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+function resetViewer() {
+  viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
+  updateViewerTransform();
+}
 
-        function sortRequests(list) {
-            return [...list].sort((a, b) => {
-                const key = requestSort.key;
-                const order = requestSort.order === 'asc' ? 1 : -1;
-                if (key === 'number') {
-                    return order * (a.id - b.id);
-                }
-                if (key === 'address') {
-                    return order * a.address.localeCompare(b.address, 'he');
-                }
-                if (key === 'submitterName') {
-                    return order * a.submitterName.localeCompare(b.submitterName, 'he');
-                }
-                if (key === 'area') {
-                    return order * ((a.requestedArea - a.currentArea) - (b.requestedArea - b.currentArea));
-                }
-                if (key === 'status') {
-                    return order * a.status.localeCompare(b.status, 'he');
-                }
-                if (key === 'createdAt') {
-                    return order * (new Date(b.createdAt) - new Date(a.createdAt));
-                }
-                return 0;
-            });
-        }
+function updateViewerTransform() {
+  document.getElementById('viewerImage').style.transform = `translate(${viewerState.x}px,${viewerState.y}px) scale(${viewerState.scale})`;
+}
 
-        function setTableSort(key) {
-            if (requestSort.key === key) {
-                requestSort.order = requestSort.order === 'asc' ? 'desc' : 'asc';
-            } else {
-                requestSort.key = key;
-                requestSort.order = 'asc';
-            }
-            updateSortHeaders();
-            filterRequests();
-        }
+function setupViewerEvents() {
+  const img = document.getElementById('viewerImage');
+  img.addEventListener('pointerdown', e => {
+    viewerState.dragging = true;
+    viewerState.startX = e.clientX - viewerState.x;
+    viewerState.startY = e.clientY - viewerState.y;
+    img.setPointerCapture(e.pointerId);
+  });
+  img.addEventListener('pointermove', e => {
+    if (!viewerState.dragging) return;
+    viewerState.x = e.clientX - viewerState.startX;
+    viewerState.y = e.clientY - viewerState.startY;
+    updateViewerTransform();
+  });
+  img.addEventListener('pointerup', e => { viewerState.dragging = false; img.releasePointerCapture(e.pointerId); });
+  img.addEventListener('wheel', e => { e.preventDefault(); zoomViewer(e.deltaY < 0 ? 1.15 : 0.87); });
+}
 
-        function updateSortHeaders() {
-            document.querySelectorAll('#requestsTable th.sortable').forEach(th => {
-                th.classList.remove('sorted-asc', 'sorted-desc');
-                if (th.dataset.sortKey === requestSort.key) {
-                    th.classList.add(requestSort.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
-                }
-            });
-        }
+// ===== UTILITIES =====
+function todayStr() {
+  return new Date().toLocaleDateString('he-IL');
+}
 
-        function renderRequestEditors(list) {
-            const container = document.getElementById('requestEditorsList');
-            const unique = [];
-            const seen = new Set();
-            list.forEach(req => {
-                const key = `${req.submitterName}|${req.submitterEmail}`;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    unique.push(req);
-                }
-            });
-            if (!unique.length) {
-                container.innerHTML = '<div style="color: var(--text-light);">לא נמצאו עורכי בקשות להצגה.</div>';
-                return;
-            }
-            container.innerHTML = unique.map(req => `
-                <div class="editor-item">
-                    <span>${req.submitterName}</span>
-                    <span>${req.submitterEmail || 'אין דוא"ל'}</span>
-                </div>
-            `).join('');
-        }
-        
-        function formatRequestNumber(value) {
-            return String(value).padStart(3, '0');
-        }
-        
-        function translateStatus(status) {
-            const map = {
-                'pending': 'ממתינה',
-                'approved': 'אושרה',
-                'rejected': 'דחויה'
-            };
-            return map[status] || status;
-        }
-        
-        function filterRequests() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const filter = document.getElementById('filterStatus').value;
-            
-            const filtered = requests.filter(req => {
-                const matchesSearch = req.address.toLowerCase().includes(search) || req.submitterName.toLowerCase().includes(search);
-                const matchesFilter = !filter || req.status === filter;
-                return matchesSearch && matchesFilter;
-            });
-            
-            const tbody = document.getElementById('requestsBody');
-            tbody.innerHTML = filtered.map((req, idx) => `
-                <tr class="status-${req.status}">
-                    <td>${requests.indexOf(req) + 1}</td>
-                    <td><strong>${req.address}</strong></td>
-                    <td>${req.submitterName}</td>
-                    <td>${req.currentArea} → ${req.requestedArea}</td>
-                    <td><span class="status-badge status-${req.status}">${translateStatus(req.status)}</span></td>
-                    <td>${req.createdAt}</td>
-                    <td>
-                        <button class="btn btn-light" style="padding: 6px 12px; font-size: 12px;" onclick="viewRequestDetails(${req.id})">צפה בפרטים</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        function viewRequestDetails(id) {
-            const request = requests.find(r => r.id === id);
-            if (!request) return;
-            const unmet = (request.requirementChecklist || []).filter(item => !item.checked);
-            const finalSummary = buildRequestFinalSummary(request, unmet);
-            
-            const modalBody = document.getElementById('modalBody');
-            modalBody.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: var(--primary); margin-bottom: 15px;">פרטי הבקשה</h3>
-                    
-                    <div style="background: var(--light-bg); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <p><strong>כתובת:</strong> ${request.address}</p>
-                        <p><strong>עורך בקשה:</strong> ${request.submitterName}</p>
-                        <p><strong>טלפון:</strong> ${request.submitterPhone}</p>
-                        <p><strong>דוא"ל:</strong> ${request.submitterEmail}</p>
-                        <p><strong>הוגשה:</strong> ${request.createdAt}</p>
-                    </div>
-                    
-                    <div style="background: var(--light-bg); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <p><strong>גוש:</strong> ${request.gushNumber || '—'}</p>
-                        <p><strong>חלקה:</strong> ${request.helkaNumber || '—'}</p>
-                        <p><strong>שטח קיים:</strong> ${request.currentArea} מ"ר</p>
-                        <p><strong>שטח מבוקש:</strong> ${request.requestedArea} מ"ר</p>
-                        <p><strong>תוספת:</strong> ${request.requestedArea - request.currentArea} מ"ר</p>
-                    </div>
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-                    <div style="background: var(--light-bg); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <p><strong>תגובת גיאוקוד כתובת:</strong> ${request.lat && request.lng ? `נמצא ב-${parseFloat(request.lat).toFixed(6)}, ${parseFloat(request.lng).toFixed(6)}` : 'לא זוהתה מיקום מדויק'}</p>
-                        <button class="btn btn-light" style="margin-top: 10px;" onclick="confirmOrEditLocation(${id})">אשר / תקן את המיקום</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <strong>תיאור ההרחבה:</strong>
-                        <p style="background: var(--light-bg); padding: 10px; border-radius: 4px; margin-top: 8px;">${request.description || '—'}</p>
-                    </div>
-                    
-                    ${finalSummary}
-                    
-                    <div style="margin-bottom: 20px;">
-                        <strong>סטטוס בקשה:</strong>
-                        <p style="margin-top: 8px;">
-                            <span class="status-badge status-${request.status}">${translateStatus(request.status)}</span>
-                        </p>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <strong>קבצים מצורפים:</strong>
-                        <div style="display: grid; gap: 12px; margin-top: 10px;">
-                            ${request.planAttachment ? (request.planAttachment.type.startsWith('image/') ? `<button class="btn btn-light" onclick="openImageFullscreen('${request.planAttachment.data}')">צפה בתוכנית</button>` : `<p style="color: var(--text-dark);">תוכנית הוגשה כקובץ ${request.planAttachment.name}</p>`) : '<p style="color: var(--text-light);">אין תוכנית מוצגת</p>'}
-                            ${request.visualizationImage ? `<img src="${request.visualizationImage.data}" alt="הדמייה" style="max-width: 100%; border-radius: 6px; cursor: pointer;" onclick="openImageFullscreen('${request.visualizationImage.data}')">` : ''}
-                            ${request.registrationImage ? `<img src="${request.registrationImage.data}" alt="רישום" style="max-width: 100%; border-radius: 6px; cursor: pointer;" onclick="openImageFullscreen('${request.registrationImage.data}')">` : ''}
-                            ${request.tenantConsent === 'yes' && request.consentDocument ? `<p style="font-size: 14px; color: var(--text-dark);">מסמך הסכמה מוצג.</p>` : ''}
-                            ${request.programInstructions ? `<p style="font-size: 14px; color: var(--text-dark);">הוראות תוכנית: ${request.programInstructions.name}</p>` : '<p style="color: var(--text-light);">אין הוראות תוכנית מצורפות</p>'}
-                        </div>
-                    </div>
-                    ${request.programInstructions ? `
-                        <div style="margin-bottom: 20px; padding: 15px; background: #fff9eb; border: 1px solid rgba(212,175,55,0.25); border-radius: 8px;">
-                            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-                                <input id="detailInstructionsSearchInput" type="text" placeholder="חפש מילת מפתח במסמך הוראות" style="flex:1; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
-                                <button class="btn btn-light" onclick="searchRequestInstructions(${id})">חפש</button>
-                            </div>
-                            <div id="detailInstructionsSearchResults" style="min-height: 40px; color: var(--text-dark);"></div>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-                    <h3 style="color: var(--primary); margin-bottom: 15px;">הערות וקבלת החלטה</h3>
-                    
-                    <div id="commentsList" style="margin-bottom: 20px;">
-                        ${request.comments.length === 0 ? '<p style="color: var(--text-light);">אין הערות עדיין</p>' : ''}
-                        ${request.comments.map(c => `
-                            <div style="background: var(--light-bg); padding: 12px; border-radius: 4px; margin-bottom: 10px; border-right: 4px solid var(--accent);">
-                                <strong style="color: var(--primary);">הערה:</strong> ${c.text}
-                                <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">${c.date}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>תיאור סופי של החלטת אדריכלית העיר</label>
-                        <textarea id="finalDecisionNotes" placeholder="הכנס כאן סיכום מקיף, רשימת חסרים ותוכן נוסף שתרצי לצרף"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>הוסף הערה</label>
-                        <textarea id="newComment" placeholder="הערה או בקשה להשלמת מסמכים"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>החלטה</label>
-                        <select id="decisionSelect">
-                            <option value="">-- בחרו החלטה --</option>
-                            <option value="pending">ממתינה</option>
-                            <option value="approved">אישור תנאי</option>
-                            <option value="rejected">דחייה</option>
-                        </select>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-warning" onclick="addComment(${id})">הוסף הערה</button>
-                        <button class="btn btn-info" onclick="sendDecisionEmail(${id})">שלח מייל עדכון</button>
-                        <button class="btn btn-secondary" onclick="sendReviewCheckEmail(${id})">שלח מייל בדיקה</button>
-                        <button class="btn btn-success" onclick="makeDecision(${id}, 'approved')">אישור</button>
-                        <button class="btn btn-secondary" onclick="makeDecision(${id}, 'rejected')">דחייה</button>
-                        <button class="btn btn-light" onclick="closeModal()">סגור</button>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('detailsModal').classList.add('active');
-            document.getElementById('filterStatus').value = request.status;
-        }
-
-        async function confirmOrEditLocation(id) {
-            const request = requests.find(r => r.id === id);
-            if (!request) return;
-            const result = await resolveRequestLocation(request);
-            if (result.status === 'ok') {
-                request.lat = result.lat;
-                request.lng = result.lng;
-                localStorage.setItem('requests', JSON.stringify(requests));
-                alert('✅ מיקום עודכן ומאושר בהצלחה.');
-                loadRequests();
-                viewRequestDetails(id);
-            } else if (result.status === 'ambiguous') {
-                openLocationModal(request, result.candidates);
-            } else {
-                alert('⚠️ לא נמצאה התאמה ברורה לכתובת. בדוק את הכתובת ונסה שוב.');
-            }
-        }
-        
-        function addComment(id) {
-            const request = requests.find(r => r.id === id);
-            const text = document.getElementById('newComment').value;
-            
-            if (!text) {
-                alert('⚠️ הוסיפו הערה');
-                return;
-            }
-            
-            if (!request.comments) request.comments = [];
-            request.comments.push({
-                text: text,
-                date: new Date().toLocaleDateString('he-IL')
-            });
-            
-            localStorage.setItem('requests', JSON.stringify(requests));
-            alert('✅ הערה נוספה');
-            viewRequestDetails(id);
-        }
-
-        function buildRequestFinalSummary(request, unmet) {
-            const consentText = request.tenantConsent === 'yes' ? 'כן, יש הסכמה בכתב' : request.tenantConsent === 'partial' ? 'חלקית' : 'לא';
-            const notesHtml = request.notes ? `<p><strong>הערות המבקש:</strong> ${request.notes}</p>` : '';
-            const missingHtml = unmet.length > 0 ? `
-                <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-right: 4px solid #f39c12;">
-                    <strong>דרישות שלא סומנו / חסרות:</strong>
-                    <ul style="margin-top: 10px; margin-right: 20px;">
-                        ${unmet.map(item => `<li>${item.text || 'פריט חסר'}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : '';
-            const approvalHtml = request.approval && request.approval.notes ? `
-                <div style="background: #e8f6f3; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-right: 4px solid #27ae60;">
-                    <strong>סיכום אדריכלית העיר:</strong>
-                    <p style="margin-top: 10px;">${request.approval.notes}</p>
-                </div>
-            ` : '';
-            return `
-                <div style="background: var(--light-bg); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                    <h4 style="margin-top: 0; color: var(--primary);">סיכום בקשה מלא</h4>
-                    <p><strong>גוש / חלקה:</strong> ${request.gushNumber || '—'} / ${request.helkaNumber || '—'}</p>
-                    <p><strong>הסכם דיירים:</strong> ${consentText}</p>
-                    ${notesHtml}
-                    ${missingHtml}
-                    ${approvalHtml}
-                </div>
-            `;
-        }
-
-        function makeDecision(id, decision) {
-            const request = requests.find(r => r.id === id);
-            const notes = document.getElementById('finalDecisionNotes') ? document.getElementById('finalDecisionNotes').value : '';
-            request.status = decision;
-            request.approval = {
-                date: new Date().toLocaleDateString('he-IL'),
-                decision: decision,
-                notes: notes
-            };
-            
-            localStorage.setItem('requests', JSON.stringify(requests));
-            alert('✅ החלטה נשמרה');
-            closeModal();
-            loadRequests();
-        }
-
-        function sendDecisionEmail(id) {
-            const request = requests.find(r => r.id === id);
-            if (!request || !request.submitterEmail) {
-                alert('⚠️ אין כתובת דוא"ל זמינה לשליחה');
-                return;
-            }
-            const notes = document.getElementById('finalDecisionNotes').value || 'אין תיאור נוסף.';
-            const unmet = (request.requirementChecklist || []).filter(item => !item.checked).map(item => item.text || 'פריט חסר');
-            const missingDescription = unmet.length > 0 ? `דרישות שלא מולאו:\n- ${unmet.join('\n- ')}\n\n` : '';
-            const body = encodeURIComponent(`שלום ${request.submitterName},\n\n` +
-                `הבקשה שלך לכתובת ${request.address} נבדקה.\n` +
-                `${missingDescription}` +
-                `סקירה של אדריכלית העיר:\n${notes}\n\n` +
-                `אם יש שאלות נוספות, יש להשיב למייל זה.`
-            );
-            window.location.href = `mailto:${request.submitterEmail}?subject=${encodeURIComponent('עדכון על בקשת תוכנית')}&body=${body}`;
-        }
-
-        function sendReviewCheckEmail(id) {
-            const request = requests.find(r => r.id === id);
-            if (!request || !request.submitterEmail) {
-                alert('⚠️ אין כתובת דוא"ל זמינה לשליחה');
-                return;
-            }
-            const body = encodeURIComponent(`שלום ${request.submitterName},\n\n` +
-                `נבדקה בקשת התוכנית שלך לכתובת ${request.address}.\n` +
-                `ניתן להמשיך בתהליך או לשלוח תוספות לפי הצורך.\n\n` +
-                `בברכה,\nאדריכלית העיר`);
-            window.location.href = `mailto:${request.submitterEmail}?subject=${encodeURIComponent('בדיקת בקשת תוכנית')}&body=${body}`;
-        }
-        
-        function closeModal() {
-            document.getElementById('detailsModal').classList.remove('active');
-        }
-
-        function openLocationModal(request, candidates) {
-            pendingLocationRequest = request;
-            pendingLocationCandidates = candidates || [];
-            const body = document.getElementById('locationModalBody');
-            if (!candidates || !candidates.length) {
-                body.innerHTML = `<p>לא נמצאו הצעות מיקום עבור הכתובת: <strong>${request.address}</strong>.</p><p>אנא תקן את הכתובת ונסה שוב.</p>`;
-            } else {
-                const options = candidates.map((candidate, index) => {
-                    return `
-                        <div class="location-option">
-                            <label>
-                                <input type="radio" name="locationCandidate" value="${index}" ${index === 0 ? 'checked' : ''}>
-                                <strong>${candidate.display_name}</strong><br>
-                                <small>${candidate.type || ''}${candidate.address.city || candidate.address.town ? ' • ' + (candidate.address.city || candidate.address.town) : ''}</small>
-                            </label>
-                        </div>
-                    `;
-                }).join('');
-                body.innerHTML = `
-                    <p>נמצאו מספר תוצאות עבור הכתובת: <strong>${request.address}</strong>.</p>
-                    <p>בחרו את הכתובת המתאימה ביותר לפני שמירת הבקשה.</p>
-                    <div class="location-options">${options}</div>
-                    <div class="modal-actions">
-                        <button class="btn btn-primary" onclick="confirmPendingLocation()">שמור את הכתובת הנבחרת</button>
-                        <button class="btn btn-light" onclick="closeLocationModal()">ביטול</button>
-                    </div>
-                `;
-            }
-            document.getElementById('locationModal').classList.add('active');
-        }
-
-        function closeLocationModal() {
-            document.getElementById('locationModal').classList.remove('active');
-        }
-
-        async function confirmPendingLocation() {
-            const selected = document.querySelector('input[name="locationCandidate"]:checked');
-            if (!selected) {
-                alert('אנא בחרו מיקום לפני שמירה.');
-                return;
-            }
-            const idx = parseInt(selected.value, 10);
-            if (!pendingLocationCandidates[idx]) {
-                alert('ארעה שגיאה בבחירת הכתובת. נסו שוב.');
-                return;
-            }
-            const chosen = pendingLocationCandidates[idx];
-            pendingLocationRequest.lat = parseFloat(chosen.lat);
-            pendingLocationRequest.lng = parseFloat(chosen.lon);
-            persistRequest(pendingLocationRequest);
-            pendingLocationRequest = null;
-            pendingLocationCandidates = [];
-            loadRequests();
-            closeLocationModal();
-        }
-
-        async function geocodeFullAddress(address) {
-            const encoded = encodeURIComponent(address + ', אשדוד, ישראל');
-            const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&addressdetails=1&limit=5&accept-language=he`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) return [];
-                const results = await response.json();
-                return Array.isArray(results) ? results : [];
-            } catch (error) {
-                console.error('Geocode error:', error);
-                return [];
-            }
-        }
-
-        function normalizeAddress(text) {
-            return text.toLowerCase().replace(/\s+/g, ' ').replace(/[^a-z0-9אבגדהוזחטיכלמנסעפצקרשתםןץףץ‌\-]/gi, '').trim();
-        }
-
-        function addressLooksExact(address, result) {
-            const normalizedAddress = normalizeAddress(address);
-            const displayText = normalizeAddress(result.display_name || '');
-            return normalizedAddress.split(' ').every(part => part && displayText.includes(part));
-        }
-
-        async function resolveRequestLocation(request) {
-            const results = await geocodeFullAddress(request.address);
-            if (!results.length) {
-                return { status: 'not_found' };
-            }
-            if (results.length === 1 && addressLooksExact(request.address, results[0])) {
-                return { status: 'ok', lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
-            }
-            const exactMatches = results.filter(r => addressLooksExact(request.address, r));
-            if (exactMatches.length === 1) {
-                return { status: 'ok', lat: parseFloat(exactMatches[0].lat), lng: parseFloat(exactMatches[0].lon) };
-            }
-            return { status: 'ambiguous', candidates: results };
-        }
-
-        async function geocodeRequestsWithoutLocation() {
-            let changed = false;
-            for (const request of requests) {
-                if (request.lat && request.lng) continue;
-                const result = await resolveRequestLocation(request);
-                if (result.status === 'ok') {
-                    request.lat = result.lat;
-                    request.lng = result.lng;
-                    changed = true;
-                }
-            }
-            if (changed) {
-                localStorage.setItem('requests', JSON.stringify(requests));
-            }
-        }
-
-        // ========== MAP ==========
-        function initializeMap() {
-            // Ashdod center
-            const ashdodCenter = [31.8067, 34.6447];
-            
-            map = L.map('map').setView(ashdodCenter, 15);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
-            
-            updateMapMarkers();
-        }
-        
-        function updateMapMarkers() {
-            if (!map) return;
-            
-            // Remove old markers
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            
-            // Add new markers for requests with valid coordinates
-            requests.forEach((req, idx) => {
-                if (!req.lat || !req.lng) {
-                    return;
-                }
-                const colors = {
-                    'pending': 'orange',
-                    'approved': 'green',
-                    'rejected': 'red'
-                };
-                
-                const marker = L.circleMarker([parseFloat(req.lat), parseFloat(req.lng)], {
-                    radius: 8,
-                    fillColor: colors[req.status],
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.7
-                }).addTo(map);
-                
-                marker.bindPopup(`
-                    <strong>${idx + 1}. ${req.address}</strong><br>
-                    ${req.submitterName}<br>
-                    ${req.currentArea} → ${req.requestedArea} מ"ר<br>
-                    <span class="status-badge status-${req.status}" style="display: block; margin-top: 8px;">${translateStatus(req.status)}</span>
-                    ${req.visualizationImage ? `<img src="${req.visualizationImage.data}" alt="הדמיה" style="width: 100%; max-height: 120px; margin-top: 8px; border-radius: 6px; cursor: pointer;" onclick="openImageFullscreen('${req.visualizationImage.data}')">` : ''}
-                    <button onclick="viewRequestDetails(${req.id})" class="btn btn-light" style="width: 100%; margin-top: 8px; padding: 6px;">פרטים</button>
-                `);
-                
-                markers.push(marker);
-            });
-        }
-        
-        // Search in reviewer dashboard
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', filterRequests);
-            }
-        });
-    </script>
+// ===== SEARCH in dashboard =====
+document.addEventListener('DOMContentLoaded', () => {
+  const si = document.getElementById('searchInput');
+  if (si) si.addEventListener('input', filterRequests);
+});
+</script>
 </body>
 </html>
