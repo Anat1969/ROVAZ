@@ -6,6 +6,7 @@
 <title>מערכת ניהול בקשות — רובע ז׳</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -207,6 +208,20 @@ th.sorted-desc::after{content:' ▼';font-size:10px;}
 .editor-item .editor-meta{color:var(--text-light);}
 .editor-item .editor-email-btn{padding:4px 10px;font-size:12px;}
 
+/* VERSION HISTORY */
+.version-badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db;margin-right:6px;}
+.version-tree{margin-top:10px;border-top:1px solid var(--border);padding-top:8px;}
+.version-tree-item{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 0;font-size:12px;color:var(--text-light);cursor:pointer;border-radius:3px;}
+.version-tree-item:hover{background:var(--light-bg);}
+.version-tree-item .vt-line{width:20px;height:1px;background:var(--border);flex-shrink:0;}
+.version-tree-item .vt-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.editing-form-banner{background:#fff9e6;border:1px solid #f0d060;border-radius:4px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:8px;}
+
+/* SUPABASE STATUS */
+.db-status{position:fixed;bottom:14px;left:14px;padding:5px 10px;border-radius:3px;font-size:11px;z-index:900;pointer-events:none;}
+.db-status.local{background:#fff3cd;color:#7d5900;}
+.db-status.cloud{background:#d4edda;color:#155724;}
+
 /* FOOTER */
 footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;border-top:1px solid var(--border);font-size:12px;}
 
@@ -331,6 +346,12 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   <div id="submitterForm" class="page">
     <div class="card">
       <h2 data-edit-key="formTitle">טופס הגשת בקשה</h2>
+
+      <div id="editingBanner" class="editing-form-banner hidden">
+        <span>✏️</span>
+        <span id="editingBannerText">עריכת בקשה קיימת — ההגשה תיצור גרסה חדשה</span>
+        <button class="btn btn-light btn-sm" style="margin-right:auto;" onclick="cancelEditing()">ביטול עריכה</button>
+      </div>
 
       <div class="form-group">
         <label>שם עורך/ת הבקשה</label>
@@ -513,6 +534,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
           <option value="approved">אושרה</option>
           <option value="rejected">דחויה</option>
         </select>
+        <button id="toggleVersionsBtn" class="btn btn-light btn-sm" onclick="toggleVersionsView()">הצג גרסאות קודמות</button>
       </div>
       <div class="table-wrapper">
         <table id="requestsTable">
@@ -567,6 +589,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   <p>© 2024 עיריית אשדוד | מערכת ניהול בקשות תוכנית רובע ז׳ | 603-0595660</p>
 </footer>
 </div><!-- /container -->
+<div id="dbStatusBadge" class="db-status local">שמירה מקומית</div>
 
 <!-- LOCATION MODAL -->
 <div id="locationModal" class="modal">
@@ -616,6 +639,20 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 </div>
 
 <script>
+// ===== SUPABASE CONFIG (fill in after creating your project) =====
+const SUPABASE_URL = '';
+const SUPABASE_ANON_KEY = '';
+let supabaseClient = null;
+function isSupabaseConfigured() { return SUPABASE_URL && SUPABASE_ANON_KEY; }
+function initSupabase() {
+  if (!isSupabaseConfigured()) return;
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    document.getElementById('dbStatusBadge').textContent = 'מסד נתונים מחובר ☁';
+    document.getElementById('dbStatusBadge').className = 'db-status cloud';
+  } catch(e) { console.warn('Supabase init failed:', e); }
+}
+
 // ===== STATE =====
 let currentRole = 'submitter';
 let currentPage = 'submitterInstructions';
@@ -631,6 +668,8 @@ let requestSort = { key: 'createdAt', order: 'desc' };
 let editMode = false;
 let pendingEmailData = null;
 let currentDetailId = null;
+let editingFromId = null;
+let showAllVersions = false;
 const ashdodCenter = [31.8067, 34.6447];
 let viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
 
@@ -641,6 +680,10 @@ function seedInitialData() {
   if (existing.some(r => r.id === SEED_ID)) return;
   const seed = {
     id: SEED_ID,
+    version: 1,
+    parentId: null,
+    originalId: null,
+    superseded: false,
     submitterName: 'הנדסאי הילל הוס (איטי כהן)',
     applicantName: 'יקטר',
     submitterEmail: 'itay.cohen@example.com',
@@ -681,6 +724,7 @@ function seedInitialData() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', function() {
+  initSupabase();
   seedInitialData();
   renderNavTabs();
   loadPersistentPageContent();
@@ -941,6 +985,7 @@ function removeDocNote(i) {
 
 function saveDocuments() {
   localStorage.setItem('documentsContent', JSON.stringify(documentsContent));
+  saveDocumentsToSupabase();
 }
 
 // ===== UPLOAD ZONES =====
@@ -1051,8 +1096,14 @@ async function submitRequest() {
   }
 
   const address = street + ' ' + buildingNum;
+  const oldReq = editingFromId ? requests.find(r => r.id === editingFromId) : null;
+  const newVersion = oldReq ? (oldReq.version || 1) + 1 : 1;
   const request = {
     id: Date.now(),
+    version: newVersion,
+    parentId: editingFromId || null,
+    originalId: oldReq ? (oldReq.originalId || oldReq.id) : null,
+    superseded: false,
     submitterName,
     applicantName,
     submitterEmail: document.getElementById('submitterEmail').value.trim(),
@@ -1072,8 +1123,8 @@ async function submitRequest() {
     comments: [],
     approval: null,
     summaryText: '',
-    lat: null,
-    lng: null
+    lat: oldReq ? oldReq.lat : null,
+    lng: oldReq ? oldReq.lng : null
   };
 
   // Geocode without blocking
@@ -1095,25 +1146,44 @@ async function submitRequest() {
 }
 
 function finalizeRequest(request) {
+  // Mark previous version as superseded
+  if (editingFromId) {
+    const old = requests.find(r => r.id === editingFromId);
+    if (old) { old.superseded = true; persistRequestLocal(old); }
+    editingFromId = null;
+    const banner = document.getElementById('editingBanner');
+    if (banner) banner.classList.add('hidden');
+  }
   persistRequest(request);
   resetSubmissionForm();
   loadRequests();
   goToPage('submitterTracker');
   const banner = document.getElementById('submissionSuccess');
   if (banner) {
-    banner.textContent = 'הבקשה הוגשה בהצלחה! מספר בקשה: #' + request.id;
+    banner.textContent = request.version > 1
+      ? `גרסה ${request.version} הוגשה בהצלחה! (עדכון לבקשה #${request.originalId})`
+      : 'הבקשה הוגשה בהצלחה! מספר בקשה: #' + request.id;
     banner.classList.remove('hidden');
-    setTimeout(() => banner.classList.add('hidden'), 6000);
+    setTimeout(() => banner.classList.add('hidden'), 7000);
   }
 }
 
-function persistRequest(request) {
+function persistRequestLocal(request) {
   const stored = JSON.parse(localStorage.getItem('requests')) || [];
   const idx = stored.findIndex(r => r.id === request.id);
-  if (idx >= 0) stored[idx] = request;
-  else stored.push(request);
+  if (idx >= 0) stored[idx] = request; else stored.push(request);
   localStorage.setItem('requests', JSON.stringify(stored));
   requests = stored;
+}
+
+async function persistRequest(request) {
+  persistRequestLocal(request);
+  if (supabaseClient) {
+    try {
+      const row = requestToRow(request);
+      await supabaseClient.from('requests').upsert(row, { onConflict: 'id' });
+    } catch(e) { console.warn('Supabase save failed:', e); }
+  }
 }
 
 function resetSubmissionForm() {
@@ -1134,7 +1204,21 @@ function resetSubmissionForm() {
 
 // ===== LOAD & DISPLAY REQUESTS =====
 async function loadRequests() {
-  requests = JSON.parse(localStorage.getItem('requests')) || [];
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('requests').select('*').order('id', { ascending: false });
+      if (!error && data) {
+        requests = data.map(rowToRequest);
+        localStorage.setItem('requests', JSON.stringify(requests));
+      } else {
+        requests = JSON.parse(localStorage.getItem('requests')) || [];
+      }
+    } catch(e) {
+      requests = JSON.parse(localStorage.getItem('requests')) || [];
+    }
+  } else {
+    requests = JSON.parse(localStorage.getItem('requests')) || [];
+  }
   await geocodeRequestsWithoutLocation();
   renderSubmitterTracker();
   filterRequests();
@@ -1145,34 +1229,76 @@ async function loadRequests() {
 function renderSubmitterTracker() {
   const tracker = document.getElementById('trackerContent');
   if (!tracker) return;
-  if (!requests.length) {
+  const active = requests.filter(r => !r.superseded);
+  if (!active.length) {
     tracker.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>';
     return;
   }
-  tracker.innerHTML = requests.map(req => `
-    <div class="tracker-item">
-      <div class="tracker-header">
-        <strong>${req.address}</strong>
-        <span class="badge badge-${req.status}">${translateStatus(req.status)}</span>
-      </div>
-      <div style="font-size:12px;color:var(--text-light);">עורך: ${req.submitterName}${req.applicantName ? ' | מבקש: ' + req.applicantName : ''}</div>
-      <div style="font-size:12px;color:var(--text-light);margin-top:3px;">הוגשה: ${req.createdAt}</div>
-      ${req.comments && req.comments.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--amber);">הערה אחרונה: ${req.comments[req.comments.length-1].text}</div>` : ''}
-    </div>
-  `).join('');
+  // Build version chains: group by originalId (or own id if root)
+  const chains = {};
+  requests.forEach(req => {
+    const root = req.originalId || req.id;
+    if (!chains[root]) chains[root] = [];
+    chains[root].push(req);
+  });
+  // Sort each chain by version
+  Object.values(chains).forEach(chain => chain.sort((a,b) => (a.version||1) - (b.version||1)));
+  const latestByRoot = {};
+  Object.entries(chains).forEach(([root, chain]) => {
+    latestByRoot[root] = chain[chain.length - 1];
+  });
+  tracker.innerHTML = active.map(req => {
+    const rootId = req.originalId || req.id;
+    if (req.id !== (latestByRoot[rootId] || req).id) return '';
+    const chain = chains[rootId] || [req];
+    const olderVersions = chain.slice(0, chain.length - 1);
+    const versionBadge = req.version > 1 ? `<span class="version-badge">v${req.version}</span>` : '';
+    const olderHtml = olderVersions.length ? `
+      <div class="version-tree">
+        <div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">גרסאות קודמות:</div>
+        ${olderVersions.map(v => `
+          <div class="version-tree-item" onclick="viewRequestDetails(${v.id})">
+            <div class="vt-line"></div><div class="vt-dot"></div>
+            <span>v${v.version||1} — ${v.createdAt}</span>
+            <span class="badge badge-${v.status}" style="margin-right:auto;">${translateStatus(v.status)}</span>
+          </div>`).join('')}
+      </div>` : '';
+    return `
+      <div class="tracker-item">
+        <div class="tracker-header">
+          <div>${versionBadge}<strong>${req.address}</strong></div>
+          <span class="badge badge-${req.status}">${translateStatus(req.status)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-light);">עורך: ${req.submitterName}${req.applicantName ? ' | מבקש: ' + req.applicantName : ''}</div>
+        <div style="font-size:12px;color:var(--text-light);margin-top:3px;">הוגשה: ${req.createdAt}</div>
+        ${req.comments && req.comments.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--amber);">הערה אחרונה: ${req.comments[req.comments.length-1].text}</div>` : ''}
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך ושלח מחדש</button>
+        </div>
+        ${olderHtml}
+      </div>`;
+  }).join('');
 }
 
 function filterRequests() {
   const search = (document.getElementById('searchInput') || {value:''}).value.toLowerCase();
   const filter = (document.getElementById('filterStatus') || {value:''}).value;
-  const filtered = requests.filter(req => {
+  const base = showAllVersions ? requests : requests.filter(r => !r.superseded);
+  const filtered = base.filter(req => {
     const matchSearch = req.address.toLowerCase().includes(search) || req.submitterName.toLowerCase().includes(search) || (req.applicantName||'').toLowerCase().includes(search);
     const matchFilter = !filter || req.status === filter;
     return matchSearch && matchFilter;
   });
   const sorted = sortRequests(filtered);
   renderRequestTable(sorted);
-  renderRequestEditors(requests);
+  renderRequestEditors(requests.filter(r => !r.superseded));
+}
+
+function toggleVersionsView() {
+  showAllVersions = !showAllVersions;
+  const btn = document.getElementById('toggleVersionsBtn');
+  if (btn) btn.textContent = showAllVersions ? 'הסתר גרסאות ישנות' : 'הצג גרסאות קודמות';
+  filterRequests();
 }
 
 function renderRequestTable(list) {
@@ -1182,17 +1308,20 @@ function renderRequestTable(list) {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">אין בקשות להצגה</td></tr>';
     return;
   }
-  tbody.innerHTML = list.map((req, idx) => `
-    <tr class="row-${req.status}">
-      <td>${String(idx + 1).padStart(3,'0')}</td>
-      <td><strong>${req.address}</strong></td>
-      <td>${req.submitterName}</td>
-      <td>${req.applicantName || '—'}</td>
-      <td><span class="badge badge-${req.status}">${translateStatus(req.status)}</span></td>
-      <td>${req.createdAt}</td>
-      <td><button class="btn btn-light btn-sm" onclick="viewRequestDetails(${req.id})">פרטים</button></td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = list.map((req, idx) => {
+    const vBadge = req.version > 1 ? `<span class="version-badge">v${req.version}</span>` : '';
+    const supersededStyle = req.superseded ? 'opacity:0.55;' : '';
+    return `
+      <tr class="row-${req.status}" style="${supersededStyle}">
+        <td>${String(idx + 1).padStart(3,'0')}</td>
+        <td>${vBadge}<strong>${req.address}</strong></td>
+        <td>${req.submitterName}</td>
+        <td>${req.applicantName || '—'}</td>
+        <td><span class="badge badge-${req.status}">${translateStatus(req.status)}</span></td>
+        <td>${req.createdAt}</td>
+        <td><button class="btn btn-light btn-sm" onclick="viewRequestDetails(${req.id})">פרטים</button></td>
+      </tr>`;
+  }).join('');
 }
 
 function sortRequests(list) {
@@ -1240,6 +1369,132 @@ function renderRequestEditors(list) {
 
 function translateStatus(s) {
   return { pending:'ממתינה', approved:'אושרה', rejected:'דחויה' }[s] || s;
+}
+
+// ===== EDIT REQUEST (versioning) =====
+function editRequest(id) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  editingFromId = id;
+  // Pre-fill form
+  const set = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val || ''; };
+  set('submitterName', req.submitterName);
+  set('applicantName', req.applicantName);
+  set('submitterEmail', req.submitterEmail);
+  set('submitterPhone', req.submitterPhone);
+  set('propertyStreet', req.street);
+  set('propertyBuildingNumber', req.buildingNumber);
+  set('gushNumber', req.gushNumber);
+  set('helkaNumber', req.helkaNumber);
+  set('expansionDescription', req.description);
+  set('additionalNotes', req.notes);
+  // Restore attachments if available
+  if (req.planAttachment) {
+    tempUploads.plan = req.planAttachment;
+    showFileInZone('planUpload', 'planContent', req.planAttachment);
+  }
+  if (req.visualizationImage) {
+    tempUploads.visualization = req.visualizationImage;
+    showFileInZone('visualizationUpload', 'visualizationContent', req.visualizationImage);
+  }
+  // Show editing banner
+  const banner = document.getElementById('editingBanner');
+  const bannerText = document.getElementById('editingBannerText');
+  if (banner) banner.classList.remove('hidden');
+  if (bannerText) bannerText.textContent = `עריכת בקשה — ${req.address} (גרסה ${req.version||1}) — הגשה תיצור גרסה ${(req.version||1)+1}`;
+  goToPage('submitterForm');
+}
+
+function cancelEditing() {
+  editingFromId = null;
+  const banner = document.getElementById('editingBanner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function showFileInZone(zoneId, contentId, attachment) {
+  const zone = document.getElementById(zoneId);
+  const content = document.getElementById(contentId);
+  if (!zone || !content || !attachment) return;
+  zone.querySelector('.zone-prompt').style.display = 'none';
+  content.style.display = 'block';
+  const type = attachment.type || '';
+  const removeBtn = `<button class="zone-remove" onclick="clearUploadZone('${zoneId === 'planUpload' ? 'plan' : 'visualization'}')" title="הסר">×</button>`;
+  if (type.startsWith('image/')) {
+    const s = attachment.data.replace(/'/g,"\\'");
+    content.innerHTML = removeBtn + `<img src="${attachment.data}" onclick="openImageFullscreen('${s}')" style="cursor:pointer;">`;
+  } else {
+    content.innerHTML = removeBtn + `<div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(attachment.name)}</span></div>`;
+  }
+}
+
+// ===== SUPABASE HELPERS =====
+function requestToRow(req) {
+  return {
+    id: String(req.id),
+    version: req.version || 1,
+    parent_id: req.parentId ? String(req.parentId) : null,
+    original_id: req.originalId ? String(req.originalId) : null,
+    superseded: req.superseded || false,
+    submitter_name: req.submitterName || '',
+    applicant_name: req.applicantName || '',
+    submitter_email: req.submitterEmail || '',
+    submitter_phone: req.submitterPhone || '',
+    street: req.street || '',
+    building_number: req.buildingNumber || '',
+    address: req.address || '',
+    gush_number: req.gushNumber || '',
+    helka_number: req.helkaNumber || '',
+    description: req.description || '',
+    notes: req.notes || '',
+    status: req.status || 'pending',
+    created_at: req.createdAt || '',
+    lat: req.lat || null,
+    lng: req.lng || null,
+    checklist: req.requirementChecklist || [],
+    approval: req.approval || null,
+    comments: req.comments || [],
+    plan_attachment: req.planAttachment ? JSON.stringify(req.planAttachment) : null,
+    visualization_image: req.visualizationImage ? JSON.stringify(req.visualizationImage) : null,
+    summary_text: req.summaryText || ''
+  };
+}
+
+function rowToRequest(row) {
+  return {
+    id: Number(row.id) || row.id,
+    version: row.version || 1,
+    parentId: row.parent_id ? Number(row.parent_id) : null,
+    originalId: row.original_id ? Number(row.original_id) : null,
+    superseded: row.superseded || false,
+    submitterName: row.submitter_name || '',
+    applicantName: row.applicant_name || '',
+    submitterEmail: row.submitter_email || '',
+    submitterPhone: row.submitter_phone || '',
+    street: row.street || '',
+    buildingNumber: row.building_number || '',
+    address: row.address || '',
+    gushNumber: row.gush_number || '',
+    helkaNumber: row.helka_number || '',
+    description: row.description || '',
+    notes: row.notes || '',
+    status: row.status || 'pending',
+    createdAt: row.created_at || '',
+    lat: row.lat || null,
+    lng: row.lng || null,
+    requirementChecklist: row.checklist || [],
+    approval: row.approval || null,
+    comments: row.comments || [],
+    planAttachment: row.plan_attachment ? JSON.parse(row.plan_attachment) : null,
+    visualizationImage: row.visualization_image ? JSON.parse(row.visualization_image) : null,
+    summaryText: row.summary_text || ''
+  };
+}
+
+async function saveDocumentsToSupabase() {
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient.from('documents_content').upsert({ id: 1, ...documentsContent, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+  } catch(e) { console.warn('Supabase docs save failed:', e); }
 }
 
 // ===== DETAIL PAGE =====
