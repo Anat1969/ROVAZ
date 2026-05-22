@@ -246,6 +246,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   <label>תפקיד:</label>
   <button id="roleSubmitter" class="active" onclick="switchRole('submitter')">עורך בקשה</button>
   <button id="roleReviewer" onclick="switchRole('reviewer')">אדריכלית העיר</button>
+  <button id="logoutBtn" class="btn btn-light btn-sm hidden" onclick="logoutReviewer()" style="margin-right:6px;">יציאה ↩</button>
 </div>
 
 <!-- NAVIGATION -->
@@ -516,6 +517,21 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
     <div class="card">
       <h2>מעקב אחר הבקשה שלך</h2>
       <div id="submissionSuccess" class="success-banner hidden"></div>
+      <!-- Phone identification gate -->
+      <div id="phoneGate" class="hidden">
+        <div style="text-align:center;padding:30px 20px;">
+          <p style="font-size:15px;margin-bottom:16px;">הזינו את מספר הטלפון שמסרתם בטופס ההגשה כדי לראות את הבקשות שלכם.</p>
+          <div style="max-width:300px;margin:0 auto;">
+            <input type="tel" id="phoneGateInput" placeholder="05X-XXXXXXX"
+                   autocomplete="tel" list="phoneDatalist"
+                   style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;text-align:center;margin-bottom:10px;direction:ltr;"
+                   onkeydown="if(event.key==='Enter') identifyByPhone()">
+            <datalist id="phoneDatalist"></datalist>
+            <button class="btn btn-primary" style="width:100%;" onclick="identifyByPhone()">הצג את הבקשות שלי</button>
+            <p id="phoneGateError" style="color:#c0392b;font-size:12px;margin-top:8px;display:none;">לא נמצאו בקשות למספר זה</p>
+          </div>
+        </div>
+      </div>
       <div id="trackerContent">
         <p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>
       </div>
@@ -623,6 +639,28 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   </div>
 </div>
 
+<!-- REVIEWER PASSWORD MODAL -->
+<div id="reviewerPasswordModal" class="modal">
+  <div class="modal-content" style="max-width:360px;">
+    <div class="modal-header">
+      <h2>כניסה — אדריכלית העיר</h2>
+      <button class="modal-close" onclick="closeReviewerPasswordModal()">×</button>
+    </div>
+    <div class="form-group" style="margin-bottom:8px;">
+      <label>סיסמה</label>
+      <input type="password" id="reviewerPasswordInput" placeholder="הזיני סיסמה"
+             autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') verifyReviewerPassword()"
+             style="direction:ltr;letter-spacing:2px;">
+    </div>
+    <p id="reviewerPasswordError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">סיסמה שגויה — נסי שוב</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="verifyReviewerPassword()">כניסה</button>
+      <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <!-- IMAGE VIEWER -->
 <div id="imageViewerModal" class="full-screen-modal" onclick="closeImageViewer(event)">
   <div class="viewer-card" onclick="event.stopPropagation()">
@@ -642,6 +680,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 // ===== SUPABASE CONFIG (fill in after creating your project) =====
 const SUPABASE_URL = 'https://mahaeooagyattfavbajw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1haGFlb29hZ3lhdHRmYXZiYWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MjE5MzQsImV4cCI6MjA5NDk5NzkzNH0.KYiluMxaUrCNGlNqDp-Ek0omhAwpQb5lVP0owpo8VBA';
+const REVIEWER_PASSWORD = 'rovaz2026'; // ← ניתן לשנות סיסמה כאן
 let supabaseClient = null;
 function isSupabaseConfigured() { return SUPABASE_URL && SUPABASE_ANON_KEY; }
 function initSupabase() {
@@ -670,6 +709,7 @@ let pendingEmailData = null;
 let currentDetailId = null;
 let editingFromId = null;
 let showAllVersions = false;
+let submitterIdentityPhone = sessionStorage.getItem('submitterPhone') || null;
 const ashdodCenter = [31.8067, 34.6447];
 let viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
 
@@ -738,9 +778,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ===== NAVIGATION =====
 function switchRole(role) {
+  if (role === 'reviewer') {
+    if (sessionStorage.getItem('reviewerAuth') === '1') {
+      _doSwitchRole('reviewer');
+    } else {
+      openReviewerPasswordModal();
+    }
+  } else {
+    _doSwitchRole('submitter');
+  }
+}
+
+function _doSwitchRole(role) {
   currentRole = role;
   document.getElementById('roleSubmitter').classList.toggle('active', role === 'submitter');
   document.getElementById('roleReviewer').classList.toggle('active', role === 'reviewer');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.classList.toggle('hidden', role !== 'reviewer');
   renderNavTabs();
   goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
 }
@@ -768,6 +822,8 @@ function renderNavTabs() {
   if (currentRole === 'reviewer') toolbar.classList.remove('hidden');
   else toolbar.classList.add('hidden');
   document.getElementById('toggleEditBtn').textContent = editMode ? 'סגור עריכה' : 'הפעל עריכה';
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.classList.toggle('hidden', currentRole !== 'reviewer');
 }
 
 function goToPage(pageId) {
@@ -781,6 +837,16 @@ function goToPage(pageId) {
       setTimeout(() => { if (map) { map.invalidateSize(); updateMapMarkers(); } }, 300);
     }
     if (pageId === 'submitterDocuments') renderDocumentsPage();
+    if (pageId === 'submitterTracker') {
+      if (!submitterIdentityPhone) {
+        document.getElementById('phoneGate').classList.remove('hidden');
+        document.getElementById('trackerContent').style.display = 'none';
+      } else {
+        document.getElementById('phoneGate').classList.add('hidden');
+        document.getElementById('trackerContent').style.display = '';
+        renderSubmitterTracker();
+      }
+    }
   }
 }
 
@@ -1220,6 +1286,7 @@ async function loadRequests() {
     requests = JSON.parse(localStorage.getItem('requests')) || [];
   }
   await geocodeRequestsWithoutLocation();
+  populatePhoneDatalist();
   renderSubmitterTracker();
   filterRequests();
   updateSortHeaders();
@@ -1229,14 +1296,24 @@ async function loadRequests() {
 function renderSubmitterTracker() {
   const tracker = document.getElementById('trackerContent');
   if (!tracker) return;
-  const active = requests.filter(r => !r.superseded);
+  // Filter to this submitter's requests only
+  const myRequests = submitterIdentityPhone
+    ? requests.filter(r => r.submitterPhone === submitterIdentityPhone)
+    : requests;
+  const active = myRequests.filter(r => !r.superseded);
+  const identityHeader = submitterIdentityPhone
+    ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 12px;background:var(--light-bg);border-radius:4px;font-size:12px;">
+        <span>מציג בקשות עבור: <strong>${submitterIdentityPhone}</strong></span>
+        <button class="btn btn-light btn-sm" onclick="clearSubmitterIdentity()">זה לא אני</button>
+       </div>`
+    : '';
   if (!active.length) {
-    tracker.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>';
+    tracker.innerHTML = identityHeader + '<p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עבור מספר זה.</p>';
     return;
   }
   // Build version chains: group by originalId (or own id if root)
   const chains = {};
-  requests.forEach(req => {
+  myRequests.forEach(req => {
     const root = req.originalId || req.id;
     if (!chains[root]) chains[root] = [];
     chains[root].push(req);
@@ -1247,7 +1324,7 @@ function renderSubmitterTracker() {
   Object.entries(chains).forEach(([root, chain]) => {
     latestByRoot[root] = chain[chain.length - 1];
   });
-  tracker.innerHTML = active.map(req => {
+  tracker.innerHTML = identityHeader + active.map(req => {
     const rootId = req.originalId || req.id;
     if (req.id !== (latestByRoot[rootId] || req).id) return '';
     const chain = chains[rootId] || [req];
@@ -1903,6 +1980,73 @@ function setupViewerEvents() {
   });
   img.addEventListener('pointerup', e => { viewerState.dragging = false; img.releasePointerCapture(e.pointerId); });
   img.addEventListener('wheel', e => { e.preventDefault(); zoomViewer(e.deltaY < 0 ? 1.15 : 0.87); });
+}
+
+// ===== REVIEWER AUTH =====
+function openReviewerPasswordModal() {
+  document.getElementById('reviewerPasswordInput').value = '';
+  document.getElementById('reviewerPasswordError').style.display = 'none';
+  document.getElementById('reviewerPasswordModal').classList.add('active');
+  setTimeout(() => document.getElementById('reviewerPasswordInput').focus(), 100);
+}
+
+function closeReviewerPasswordModal() {
+  document.getElementById('reviewerPasswordModal').classList.remove('active');
+}
+
+function verifyReviewerPassword() {
+  const pwd = document.getElementById('reviewerPasswordInput').value;
+  if (pwd === REVIEWER_PASSWORD) {
+    sessionStorage.setItem('reviewerAuth', '1');
+    closeReviewerPasswordModal();
+    _doSwitchRole('reviewer');
+  } else {
+    document.getElementById('reviewerPasswordError').style.display = 'block';
+    document.getElementById('reviewerPasswordInput').value = '';
+    document.getElementById('reviewerPasswordInput').focus();
+  }
+}
+
+function logoutReviewer() {
+  sessionStorage.removeItem('reviewerAuth');
+  _doSwitchRole('submitter');
+}
+
+// ===== SUBMITTER IDENTITY =====
+function populatePhoneDatalist() {
+  const dl = document.getElementById('phoneDatalist');
+  if (!dl) return;
+  const phones = [...new Set(requests.map(r => r.submitterPhone).filter(Boolean))];
+  dl.innerHTML = phones.map(p => `<option value="${p}">`).join('');
+}
+
+function identifyByPhone() {
+  const phone = document.getElementById('phoneGateInput').value.trim();
+  if (!phone) return;
+  const errEl = document.getElementById('phoneGateError');
+  const matches = requests.filter(r => r.submitterPhone === phone);
+  if (!matches.length) {
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  submitterIdentityPhone = phone;
+  sessionStorage.setItem('submitterPhone', phone);
+  document.getElementById('phoneGate').classList.add('hidden');
+  document.getElementById('trackerContent').style.display = '';
+  renderSubmitterTracker();
+}
+
+function clearSubmitterIdentity() {
+  submitterIdentityPhone = null;
+  sessionStorage.removeItem('submitterPhone');
+  document.getElementById('trackerContent').style.display = 'none';
+  document.getElementById('trackerContent').innerHTML = '';
+  document.getElementById('phoneGate').classList.remove('hidden');
+  const inp = document.getElementById('phoneGateInput');
+  if (inp) inp.value = '';
+  const errEl = document.getElementById('phoneGateError');
+  if (errEl) errEl.style.display = 'none';
 }
 
 // ===== UTILITIES =====
