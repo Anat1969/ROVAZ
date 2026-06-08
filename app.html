@@ -247,6 +247,34 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   <button id="roleSubmitter" class="active" onclick="switchRole('submitter')">עורך בקשה</button>
   <button id="roleReviewer" onclick="switchRole('reviewer')">אדריכלית העיר</button>
   <button id="logoutBtn" class="btn btn-light btn-sm hidden" onclick="logoutReviewer()" style="margin-right:6px;">יציאה ↩</button>
+  <button id="submitterLogoutBtn" class="btn btn-light btn-sm hidden" onclick="clearSubmitterIdentity()" style="margin-right:6px;">יציאה ↩</button>
+  <span id="submitterGreeting" style="font-size:12px;color:var(--text-light);display:none;"></span>
+</div>
+
+<!-- SUBMITTER LOGIN MODAL -->
+<div id="submitterLoginModal" class="modal">
+  <div class="modal-content" style="max-width:380px;">
+    <div class="modal-header">
+      <h2>כניסה — עורך בקשה</h2>
+    </div>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:14px;">הזינו את פרטיכם כדי לגשת לבקשות שלכם או להגיש בקשה חדשה.</p>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>שם מלא</label>
+      <input type="text" id="loginNameInput" placeholder="שם מלא" autocomplete="name"
+             onkeydown="if(event.key==='Enter') document.getElementById('loginPhoneInput').focus()"
+             style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;">
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>מספר טלפון</label>
+      <input type="tel" id="loginPhoneInput" placeholder="05X-XXXXXXX" autocomplete="tel"
+             onkeydown="if(event.key==='Enter') submitterLogin()"
+             style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;direction:ltr;">
+    </div>
+    <p id="loginError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">יש למלא שם וטלפון</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitterLogin()">כניסה</button>
+    </div>
+  </div>
 </div>
 
 <!-- NAVIGATION -->
@@ -517,19 +545,11 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
     <div class="card">
       <h2>מעקב אחר הבקשה שלך</h2>
       <div id="submissionSuccess" class="success-banner hidden"></div>
-      <!-- Phone identification gate -->
+      <!-- Phone identification gate (shown if not logged in) -->
       <div id="phoneGate" class="hidden">
         <div style="text-align:center;padding:30px 20px;">
-          <p style="font-size:15px;margin-bottom:16px;">הזינו את מספר הטלפון שמסרתם בטופס ההגשה כדי לראות את הבקשות שלכם.</p>
-          <div style="max-width:300px;margin:0 auto;">
-            <input type="tel" id="phoneGateInput" placeholder="05X-XXXXXXX"
-                   autocomplete="tel" list="phoneDatalist"
-                   style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;text-align:center;margin-bottom:10px;direction:ltr;"
-                   onkeydown="if(event.key==='Enter') identifyByPhone()">
-            <datalist id="phoneDatalist"></datalist>
-            <button class="btn btn-primary" style="width:100%;" onclick="identifyByPhone()">הצג את הבקשות שלי</button>
-            <p id="phoneGateError" style="color:#c0392b;font-size:12px;margin-top:8px;display:none;">לא נמצאו בקשות למספר זה</p>
-          </div>
+          <p style="font-size:15px;margin-bottom:16px;">כדי לראות את הבקשות שלך, יש להיכנס עם שם וטלפון.</p>
+          <button class="btn btn-primary" onclick="openSubmitterLogin()">כניסה</button>
         </div>
       </div>
       <div id="trackerContent">
@@ -646,17 +666,43 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
       <h2>כניסה — אדריכלית העיר</h2>
       <button class="modal-close" onclick="closeReviewerPasswordModal()">×</button>
     </div>
-    <div class="form-group" style="margin-bottom:8px;">
-      <label>סיסמה</label>
-      <input type="password" id="reviewerPasswordInput" placeholder="הזיני סיסמה"
-             autocomplete="current-password"
-             onkeydown="if(event.key==='Enter') verifyReviewerPassword()"
-             style="direction:ltr;letter-spacing:2px;">
+    <!-- First-time setup -->
+    <div id="reviewerSetupSection" style="display:none;">
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">בפעם הראשונה — הגדירי סיסמה אישית לכניסה:</p>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>סיסמה חדשה</label>
+        <input type="password" id="reviewerNewPwd" placeholder="בחרי סיסמה"
+               autocomplete="new-password"
+               onkeydown="if(event.key==='Enter') document.getElementById('reviewerNewPwd2').focus()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>אימות סיסמה</label>
+        <input type="password" id="reviewerNewPwd2" placeholder="הזיני שוב"
+               autocomplete="new-password"
+               onkeydown="if(event.key==='Enter') setReviewerPassword()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <p id="reviewerSetupError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="setReviewerPassword()">הגדר סיסמה וכנסי</button>
+        <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+      </div>
     </div>
-    <p id="reviewerPasswordError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">סיסמה שגויה — נסי שוב</p>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="verifyReviewerPassword()">כניסה</button>
-      <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+    <!-- Normal login -->
+    <div id="reviewerLoginSection">
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>סיסמה</label>
+        <input type="password" id="reviewerPasswordInput" placeholder="הזיני סיסמה"
+               autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') verifyReviewerPassword()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <p id="reviewerPasswordError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">סיסמה שגויה — נסי שוב</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="verifyReviewerPassword()">כניסה</button>
+        <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+      </div>
     </div>
   </div>
 </div>
@@ -677,11 +723,12 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 </div>
 
 <script>
-// ===== SUPABASE CONFIG (fill in after creating your project) =====
+// ===== SUPABASE CONFIG =====
 const SUPABASE_URL = 'https://mahaeooagyattfavbajw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1haGFlb29hZ3lhdHRmYXZiYWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MjE5MzQsImV4cCI6MjA5NDk5NzkzNH0.KYiluMxaUrCNGlNqDp-Ek0omhAwpQb5lVP0owpo8VBA';
-const REVIEWER_PASSWORD = 'rovaz2026'; // ← ניתן לשנות סיסמה כאן
+let reviewerPasswordHash = null; // loaded from Supabase on init
 let supabaseClient = null;
+let realtimeChannel = null;
 function isSupabaseConfigured() { return SUPABASE_URL && SUPABASE_ANON_KEY; }
 function initSupabase() {
   if (!isSupabaseConfigured()) return;
@@ -689,7 +736,19 @@ function initSupabase() {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     document.getElementById('dbStatusBadge').textContent = 'מסד נתונים מחובר ☁';
     document.getElementById('dbStatusBadge').className = 'db-status cloud';
+    subscribeRealtime();
   } catch(e) { console.warn('Supabase init failed:', e); }
+}
+
+function subscribeRealtime() {
+  if (!supabaseClient) return;
+  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+  realtimeChannel = supabaseClient
+    .channel('requests-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
+      loadRequests();
+    })
+    .subscribe();
 }
 
 // ===== STATE =====
@@ -710,6 +769,7 @@ let currentDetailId = null;
 let editingFromId = null;
 let showAllVersions = false;
 let submitterIdentityPhone = sessionStorage.getItem('submitterPhone') || null;
+let submitterIdentityName = sessionStorage.getItem('submitterName') || null;
 const ashdodCenter = [31.8067, 34.6447];
 let viewerState = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0 };
 
@@ -773,6 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupViewerEvents();
   loadRequests();
   renderDocumentsPage();
+  updateSubmitterGreeting();
   setTimeout(() => { if (document.getElementById('map') && !map) initializeMap(); }, 150);
 });
 
@@ -789,12 +850,54 @@ function switchRole(role) {
   }
 }
 
+function openSubmitterLogin() {
+  document.getElementById('loginNameInput').value = submitterIdentityName || '';
+  document.getElementById('loginPhoneInput').value = submitterIdentityPhone || '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('submitterLoginModal').classList.add('active');
+  setTimeout(() => document.getElementById('loginNameInput').focus(), 100);
+}
+
+function submitterLogin() {
+  const name = document.getElementById('loginNameInput').value.trim();
+  const phone = document.getElementById('loginPhoneInput').value.trim();
+  const errEl = document.getElementById('loginError');
+  if (!name || !phone) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  submitterIdentityName = name;
+  submitterIdentityPhone = phone;
+  sessionStorage.setItem('submitterName', name);
+  sessionStorage.setItem('submitterPhone', phone);
+  document.getElementById('submitterLoginModal').classList.remove('active');
+  updateSubmitterGreeting();
+  // If currently on tracker page, refresh it
+  if (currentPage === 'submitterTracker') {
+    document.getElementById('phoneGate').classList.add('hidden');
+    document.getElementById('trackerContent').style.display = '';
+    renderSubmitterTracker();
+  }
+}
+
+function updateSubmitterGreeting() {
+  const greeting = document.getElementById('submitterGreeting');
+  const logoutBtn = document.getElementById('submitterLogoutBtn');
+  if (submitterIdentityName && currentRole === 'submitter') {
+    greeting.textContent = `שלום, ${submitterIdentityName}`;
+    greeting.style.display = '';
+    logoutBtn.classList.remove('hidden');
+  } else {
+    greeting.style.display = 'none';
+    logoutBtn.classList.add('hidden');
+  }
+}
+
 function _doSwitchRole(role) {
   currentRole = role;
   document.getElementById('roleSubmitter').classList.toggle('active', role === 'submitter');
   document.getElementById('roleReviewer').classList.toggle('active', role === 'reviewer');
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) logoutBtn.classList.toggle('hidden', role !== 'reviewer');
+  updateSubmitterGreeting();
   renderNavTabs();
   goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
 }
@@ -846,6 +949,9 @@ function goToPage(pageId) {
         document.getElementById('trackerContent').style.display = '';
         renderSubmitterTracker();
       }
+    }
+    if (pageId === 'submitterForm') {
+      prefillFormFromIdentity();
     }
   }
 }
@@ -1318,9 +1424,12 @@ function renderSubmitterTracker() {
     ? requests.filter(r => r.submitterPhone === submitterIdentityPhone)
     : requests;
   const active = myRequests.filter(r => !r.superseded);
+  const identityLabel = submitterIdentityName
+    ? `${submitterIdentityName} (${submitterIdentityPhone})`
+    : submitterIdentityPhone || '';
   const identityHeader = submitterIdentityPhone
     ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 12px;background:var(--light-bg);border-radius:4px;font-size:12px;">
-        <span>מציג בקשות עבור: <strong>${submitterIdentityPhone}</strong></span>
+        <span>מציג בקשות עבור: <strong>${identityLabel}</strong></span>
         <button class="btn btn-light btn-sm" onclick="clearSubmitterIdentity()">זה לא אני</button>
        </div>`
     : '';
@@ -1365,7 +1474,11 @@ function renderSubmitterTracker() {
         </div>
         <div style="font-size:12px;color:var(--text-light);">עורך: ${req.submitterName}${req.applicantName ? ' | מבקש: ' + req.applicantName : ''}</div>
         <div style="font-size:12px;color:var(--text-light);margin-top:3px;">הוגשה: ${req.createdAt}</div>
-        ${req.comments && req.comments.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--amber);">הערה אחרונה: ${req.comments[req.comments.length-1].text}</div>` : ''}
+        ${req.comments && req.comments.length ? `
+          <div style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-right:3px solid #f39c12;border-radius:4px;">
+            <div style="font-size:11px;font-weight:600;color:#7d5900;margin-bottom:4px;">📋 הערות אדריכלית העיר:</div>
+            ${req.comments.map(c => `<div style="font-size:12px;color:#5d4037;margin-bottom:3px;">${escapeHtml(c.text)} <span style="color:var(--text-light);font-size:11px;">(${c.date})</span></div>`).join('')}
+          </div>` : ''}
         <div style="margin-top:10px;display:flex;gap:8px;">
           <button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך ושלח מחדש</button>
         </div>
@@ -2000,20 +2113,63 @@ function setupViewerEvents() {
 }
 
 // ===== REVIEWER AUTH =====
-function openReviewerPasswordModal() {
-  document.getElementById('reviewerPasswordInput').value = '';
-  document.getElementById('reviewerPasswordError').style.display = 'none';
+async function hashPassword(pwd) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function loadReviewerPasswordHash() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('app_settings').select('value').eq('key','reviewer_pwd_hash').single();
+    if (!error && data) reviewerPasswordHash = data.value;
+    // if table missing or no row — first-time setup flow will trigger
+  } catch {}
+}
+
+async function openReviewerPasswordModal() {
+  await loadReviewerPasswordHash();
+  const setupSection = document.getElementById('reviewerSetupSection');
+  const loginSection = document.getElementById('reviewerLoginSection');
+  if (!reviewerPasswordHash) {
+    setupSection.style.display = '';
+    loginSection.style.display = 'none';
+    setTimeout(() => document.getElementById('reviewerNewPwd').focus(), 100);
+  } else {
+    setupSection.style.display = 'none';
+    loginSection.style.display = '';
+    document.getElementById('reviewerPasswordInput').value = '';
+    document.getElementById('reviewerPasswordError').style.display = 'none';
+    setTimeout(() => document.getElementById('reviewerPasswordInput').focus(), 100);
+  }
   document.getElementById('reviewerPasswordModal').classList.add('active');
-  setTimeout(() => document.getElementById('reviewerPasswordInput').focus(), 100);
 }
 
 function closeReviewerPasswordModal() {
   document.getElementById('reviewerPasswordModal').classList.remove('active');
 }
 
-function verifyReviewerPassword() {
+async function setReviewerPassword() {
+  const p1 = document.getElementById('reviewerNewPwd').value;
+  const p2 = document.getElementById('reviewerNewPwd2').value;
+  const errEl = document.getElementById('reviewerSetupError');
+  if (!p1 || p1.length < 4) { errEl.textContent = 'הסיסמה קצרה מדי (לפחות 4 תווים)'; errEl.style.display = 'block'; return; }
+  if (p1 !== p2) { errEl.textContent = 'הסיסמאות אינן תואמות'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const hash = await hashPassword(p1);
+  if (supabaseClient) {
+    await supabaseClient.from('app_settings').upsert({ key: 'reviewer_pwd_hash', value: hash }, { onConflict: 'key' });
+  }
+  reviewerPasswordHash = hash;
+  sessionStorage.setItem('reviewerAuth', '1');
+  closeReviewerPasswordModal();
+  _doSwitchRole('reviewer');
+}
+
+async function verifyReviewerPassword() {
   const pwd = document.getElementById('reviewerPasswordInput').value;
-  if (pwd === REVIEWER_PASSWORD) {
+  const hash = await hashPassword(pwd);
+  if (hash === reviewerPasswordHash) {
     sessionStorage.setItem('reviewerAuth', '1');
     closeReviewerPasswordModal();
     _doSwitchRole('reviewer');
@@ -2031,39 +2187,33 @@ function logoutReviewer() {
 
 // ===== SUBMITTER IDENTITY =====
 function populatePhoneDatalist() {
-  const dl = document.getElementById('phoneDatalist');
-  if (!dl) return;
-  const phones = [...new Set(requests.map(r => r.submitterPhone).filter(Boolean))];
-  dl.innerHTML = phones.map(p => `<option value="${p}">`).join('');
+  // kept for compatibility but no longer renders datalist
 }
 
 function identifyByPhone() {
-  const phone = document.getElementById('phoneGateInput').value.trim();
-  if (!phone) return;
-  const errEl = document.getElementById('phoneGateError');
-  const matches = requests.filter(r => r.submitterPhone === phone);
-  if (!matches.length) {
-    errEl.style.display = 'block';
-    return;
-  }
-  errEl.style.display = 'none';
-  submitterIdentityPhone = phone;
-  sessionStorage.setItem('submitterPhone', phone);
-  document.getElementById('phoneGate').classList.add('hidden');
-  document.getElementById('trackerContent').style.display = '';
-  renderSubmitterTracker();
+  // replaced by submitterLogin()
+  openSubmitterLogin();
+}
+
+function prefillFormFromIdentity() {
+  if (!submitterIdentityName && !submitterIdentityPhone) return;
+  const nameEl = document.getElementById('submitterName');
+  const phoneEl = document.getElementById('submitterPhone');
+  if (nameEl && !nameEl.value && submitterIdentityName) nameEl.value = submitterIdentityName;
+  if (phoneEl && !phoneEl.value && submitterIdentityPhone) phoneEl.value = submitterIdentityPhone;
 }
 
 function clearSubmitterIdentity() {
   submitterIdentityPhone = null;
+  submitterIdentityName = null;
   sessionStorage.removeItem('submitterPhone');
-  document.getElementById('trackerContent').style.display = 'none';
-  document.getElementById('trackerContent').innerHTML = '';
-  document.getElementById('phoneGate').classList.remove('hidden');
-  const inp = document.getElementById('phoneGateInput');
-  if (inp) inp.value = '';
-  const errEl = document.getElementById('phoneGateError');
-  if (errEl) errEl.style.display = 'none';
+  sessionStorage.removeItem('submitterName');
+  updateSubmitterGreeting();
+  if (currentPage === 'submitterTracker') {
+    document.getElementById('trackerContent').style.display = 'none';
+    document.getElementById('trackerContent').innerHTML = '';
+    document.getElementById('phoneGate').classList.remove('hidden');
+  }
 }
 
 // ===== UTILITIES =====
