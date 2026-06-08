@@ -312,21 +312,47 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 
     <div class="landing-login-card">
       <h2>כניסה למערכת</h2>
-      <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">הזינו שם פרטי ושם משפחה. אין צורך בסיסמה.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
-        <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="off" list="firstNameList"
-               oninput="updateLastNameList()"
-               onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()"
-               style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
-        <datalist id="firstNameList"></datalist>
-        <input type="text" id="landingLastName" placeholder="שם משפחה" autocomplete="off" list="lastNameList"
-               onkeydown="if(event.key==='Enter') landingEnter()"
-               style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
-        <datalist id="lastNameList"></datalist>
+
+      <!-- TAB toggle -->
+      <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px;">
+        <button id="tabExisting" onclick="showLoginTab('existing')"
+          style="flex:1;padding:10px;border:none;background:var(--primary);color:white;font-size:13px;font-weight:600;cursor:pointer;">משתמש קיים</button>
+        <button id="tabNew" onclick="showLoginTab('new')"
+          style="flex:1;padding:10px;border:none;background:white;color:var(--text-dark);font-size:13px;cursor:pointer;">משתמש חדש</button>
       </div>
-      <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">נא למלא שם פרטי ושם משפחה</p>
-      <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;" onclick="landingEnter()">כניסה ←</button>
-      <p style="font-size:11px;color:var(--text-light);margin-top:10px;">אדריכלית העיר — הכנסי "אדריכלית" ו-"העיר"</p>
+
+      <!-- EXISTING USER -->
+      <div id="loginExisting">
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">בחרו את שמכם מהרשימה:</p>
+        <select id="existingNameSelect"
+          style="width:100%;max-width:360px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;margin-bottom:10px;">
+          <option value="">— בחרו שם —</option>
+        </select>
+        <p id="landingErrorExisting" style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none;">נא לבחור שם מהרשימה</p>
+        <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
+          onclick="landingEnterExisting()">כניסה ←</button>
+      </div>
+
+      <!-- NEW USER -->
+      <div id="loginNew" style="display:none;">
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">הזינו שם פרטי ושם משפחה:</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
+          <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="given-name"
+                 onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()"
+                 style="flex:1;min-width:130px;max-width:172px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
+          <input type="text" id="landingLastName" placeholder="שם משפחה" autocomplete="family-name"
+                 onkeydown="if(event.key==='Enter') landingEnter()"
+                 style="flex:1;min-width:130px;max-width:172px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
+        </div>
+        <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none;">נא למלא שם פרטי ושם משפחה</p>
+        <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
+          onclick="landingEnter()">כניסה ←</button>
+      </div>
+
+      <p style="font-size:11px;color:var(--text-light);margin-top:14px;">אדריכלית העיר — הכנסי "אדריכלית" ו-"העיר"</p>
+      <!-- hidden datalists kept for JS compat -->
+      <datalist id="firstNameList"></datalist>
+      <datalist id="lastNameList"></datalist>
     </div>
   </div>
 </div>
@@ -2492,17 +2518,40 @@ function saveLoginName(fullName) {
 
 function populateLandingDatalist() {
   const names = savedLoginNames();
-  const firstNames = [...new Set(names.map(n => n.split(' ')[0]))];
-  const fl = document.getElementById('firstNameList');
-  if (fl) fl.innerHTML = firstNames.map(n => `<option value="${n}">`).join('');
+  // populate existing-user select
+  const sel = document.getElementById('existingNameSelect');
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— בחרו שם —</option>' +
+      names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    if (prev) sel.value = prev;
+  }
+  // show correct tab based on whether names exist
+  if (names.length === 0) showLoginTab('new');
+}
+
+function showLoginTab(tab) {
+  const isNew = tab === 'new';
+  document.getElementById('loginExisting').style.display = isNew ? 'none' : '';
+  document.getElementById('loginNew').style.display = isNew ? '' : 'none';
+  document.getElementById('tabExisting').style.background = isNew ? 'white' : 'var(--primary)';
+  document.getElementById('tabExisting').style.color = isNew ? 'var(--text-dark)' : 'white';
+  document.getElementById('tabNew').style.background = isNew ? 'var(--primary)' : 'white';
+  document.getElementById('tabNew').style.color = isNew ? 'white' : 'var(--text-dark)';
+  if (isNew) setTimeout(() => document.getElementById('landingFirstName').focus(), 50);
+}
+
+function landingEnterExisting() {
+  const sel = document.getElementById('existingNameSelect');
+  const fullName = sel ? sel.value.trim() : '';
+  const errEl = document.getElementById('landingErrorExisting');
+  if (!fullName) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  doLandingEnter(fullName);
 }
 
 function updateLastNameList() {
-  const first = (document.getElementById('landingFirstName').value || '').trim();
-  const names = savedLoginNames().filter(n => !first || n.startsWith(first + ' '));
-  const lastNames = [...new Set(names.map(n => n.split(' ').slice(1).join(' ')).filter(Boolean))];
-  const ll = document.getElementById('lastNameList');
-  if (ll) ll.innerHTML = lastNames.map(n => `<option value="${n}">`).join('');
+  // kept for compat — no longer used
 }
 
 function landingEnter() {
@@ -2511,8 +2560,10 @@ function landingEnter() {
   const errEl = document.getElementById('landingError');
   if (!first || !last) { errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
-  const fullName = first + ' ' + last;
+  doLandingEnter(first + ' ' + last);
+}
 
+function doLandingEnter(fullName) {
   // Reviewer detection by name
   if (REVIEWER_NAMES.includes(fullName)) {
     closeLanding();
@@ -2525,8 +2576,7 @@ function landingEnter() {
     goToPage('reviewerDashboard');
     return;
   }
-
-  // Regular submitter — save name for next time
+  // Regular submitter — save name and enter
   saveLoginName(fullName);
   submitterIdentityName = fullName;
   sessionStorage.setItem('submitterName', fullName);
@@ -2550,8 +2600,11 @@ function goBackToLanding() {
   currentRole = 'submitter';
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('landingScreen').style.display = '';
-  document.getElementById('landingFirstName').value = '';
-  document.getElementById('landingLastName').value = '';
+  const fn = document.getElementById('landingFirstName');
+  const ln = document.getElementById('landingLastName');
+  if (fn) fn.value = '';
+  if (ln) ln.value = '';
+  populateLandingDatalist();
 }
 </script>
 </body>
