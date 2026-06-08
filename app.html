@@ -2522,8 +2522,9 @@ function populateLandingDatalist() {
   const sel = document.getElementById('existingNameSelect');
   if (sel) {
     const prev = sel.value;
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     sel.innerHTML = '<option value="">— בחרו שם —</option>' +
-      names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
     if (prev) sel.value = prev;
   }
   // show correct tab based on whether names exist
@@ -2532,13 +2533,24 @@ function populateLandingDatalist() {
 
 function showLoginTab(tab) {
   const isNew = tab === 'new';
-  document.getElementById('loginExisting').style.display = isNew ? 'none' : '';
-  document.getElementById('loginNew').style.display = isNew ? '' : 'none';
-  document.getElementById('tabExisting').style.background = isNew ? 'white' : 'var(--primary)';
-  document.getElementById('tabExisting').style.color = isNew ? 'var(--text-dark)' : 'white';
-  document.getElementById('tabNew').style.background = isNew ? 'var(--primary)' : 'white';
-  document.getElementById('tabNew').style.color = isNew ? 'white' : 'var(--text-dark)';
-  if (isNew) setTimeout(() => document.getElementById('landingFirstName').focus(), 50);
+  const elExisting = document.getElementById('loginExisting');
+  const elNew = document.getElementById('loginNew');
+  const btnExisting = document.getElementById('tabExisting');
+  const btnNew = document.getElementById('tabNew');
+  if (!elExisting || !elNew) return;
+  elExisting.style.display = isNew ? 'none' : 'block';
+  elNew.style.display = isNew ? 'block' : 'none';
+  if (btnExisting) {
+    btnExisting.style.background = isNew ? 'white' : 'var(--primary)';
+    btnExisting.style.color = isNew ? 'var(--text-dark)' : 'white';
+    btnExisting.style.fontWeight = isNew ? 'normal' : '600';
+  }
+  if (btnNew) {
+    btnNew.style.background = isNew ? 'var(--primary)' : 'white';
+    btnNew.style.color = isNew ? 'white' : 'var(--text-dark)';
+    btnNew.style.fontWeight = isNew ? '600' : 'normal';
+  }
+  if (isNew) setTimeout(() => { const f = document.getElementById('landingFirstName'); if(f) f.focus(); }, 50);
 }
 
 function landingEnterExisting() {
