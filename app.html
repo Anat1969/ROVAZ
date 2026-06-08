@@ -225,55 +225,135 @@ th.sorted-desc::after{content:' ▼';font-size:10px;}
 /* FOOTER */
 footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;border-top:1px solid var(--border);font-size:12px;}
 
+/* LANDING PAGE */
+#landingScreen{min-height:100vh;background:linear-gradient(160deg,#1a3a52 0%,#2980b9 60%,#1a3a52 100%);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 60px;}
+.landing-wrap{width:100%;max-width:720px;color:white;}
+.landing-emblem{display:inline-block;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.4);border-radius:50%;width:72px;height:72px;line-height:72px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.5px;margin-bottom:20px;}
+.landing-title{font-size:30px;font-weight:700;line-height:1.25;margin-bottom:8px;}
+.landing-sub{font-size:14px;opacity:0.75;margin-bottom:32px;}
+.landing-about{background:rgba(255,255,255,0.1);border-radius:10px;padding:22px 26px;margin-bottom:24px;}
+.landing-about h2{font-size:17px;font-weight:700;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.25);padding-bottom:8px;}
+.landing-about p{font-size:14px;line-height:1.7;opacity:0.92;margin-bottom:8px;}
+.landing-steps{margin-bottom:28px;}
+.landing-steps h2{font-size:17px;font-weight:700;margin-bottom:14px;}
+.landing-steps-grid{display:flex;flex-direction:column;gap:10px;}
+.landing-step{display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,0.08);border-radius:8px;padding:14px 18px;}
+.step-num{width:32px;height:32px;min-width:32px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;}
+.step-body{display:flex;flex-direction:column;gap:3px;}
+.step-body strong{font-size:14px;}
+.step-body span{font-size:13px;opacity:0.82;}
+.landing-login-card{background:white;color:var(--text-dark);border-radius:12px;padding:30px 28px;text-align:center;}
+.landing-login-card h2{color:var(--primary);font-size:19px;margin-bottom:8px;}
+
 @media(max-width:768px){
   .form-row{grid-template-columns:1fr;}
   .nav-tabs{flex-direction:column;}
   header h1{font-size:16px;}
+  .landing-title{font-size:22px;}
+  #landingScreen{padding:24px 12px 40px;}
 }
 </style>
 </head>
 <body>
+<div id="landingScreen">
+  <div class="landing-wrap">
+    <div class="landing-logo">
+      <div class="landing-emblem">עיריית אשדוד</div>
+    </div>
+    <h1 class="landing-title">מערכת ניהול בקשות<br>תוכנית רובע ז׳</h1>
+    <p class="landing-sub">תוכנית 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
+
+    <div class="landing-about">
+      <h2>מהי תוכנית רובע ז׳?</h2>
+      <p>תוכנית בינוי עיר מס׳ 603-0595660 מאפשרת לבעלי דירות ברובע ז׳ באשדוד להגדיל את שטח דירתם עד <strong>160 מ"ר</strong> (בתוספת 12 מ"ר מרפסת ו-5 מ"ר סוכה), ללא צורך בהליך תכנוני ממושך — בכפוף לעמידה בתנאי התוכנית ולאישור אדריכלית העיר.</p>
+      <p>התוכנית בתוקף עד <strong>נובמבר 2034</strong>.</p>
+    </div>
+
+    <div class="landing-steps">
+      <h2>איך זה עובד?</h2>
+      <div class="landing-steps-grid">
+        <div class="landing-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>בדיקת זכאות</strong>
+            <span>האם הדירה בבנייה רוויה? האם קיבלה אכלוס לפני 11/2024?</span>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>עיון במסמכי התוכנית</strong>
+            <span>קראו את הוראות התוכנית, תשריטים ודרישות טכניות לפני תכנון ההרחבה.</span>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>בדיקת צ׳ק ליסט</strong>
+            <span>ודאו שכל המסמכים והאישורים מוכנים לפני ההגשה.</span>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>הגשת בקשה</strong>
+            <span>מלאו את הטופס, צרפו תוכנית בינוי והדמייה, ושלחו לאדריכלית העיר.</span>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>מעקב תשובה</strong>
+            <span>עקבו אחר סטטוס הבקשה והערות אדריכלית העיר — בזמן אמת.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-login-card">
+      <h2>כניסה למערכת</h2>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">הזינו את שמכם כדי להיכנס. אין צורך בסיסמה.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
+        <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="given-name"
+               onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()"
+               style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
+        <input type="text" id="landingLastName" placeholder="שם משפחה" autocomplete="family-name"
+               onkeydown="if(event.key==='Enter') landingEnter()"
+               style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
+      </div>
+      <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">נא למלא שם פרטי ושם משפחה</p>
+      <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;" onclick="landingEnter()">כניסה למערכת ←</button>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="btn btn-light btn-sm" onclick="switchRole('reviewer');closeLanding();">כניסה כאדריכלית העיר</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
 <div class="container">
 
 <!-- HEADER -->
 <header>
-  <h1 data-edit-key="headerTitle">מערכת ניהול בקשות — תוכנית רובע ז׳</h1>
-  <p data-edit-key="headerSubtitle">עיריית אשדוד | תוכנית 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div>
+      <h1 data-edit-key="headerTitle">מערכת ניהול בקשות — תוכנית רובע ז׳</h1>
+      <p data-edit-key="headerSubtitle">עיריית אשדוד | תוכנית 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span id="submitterGreeting" style="font-size:13px;opacity:0.85;display:none;"></span>
+      <button id="submitterLogoutBtn" class="btn btn-light btn-sm hidden" onclick="goBackToLanding()" style="font-size:12px;">יציאה ↩</button>
+      <button id="logoutBtn" class="btn btn-light btn-sm hidden" onclick="logoutReviewer()" style="font-size:12px;">יציאה ↩</button>
+    </div>
+  </div>
 </header>
 
-<!-- ROLE SWITCH -->
-<div class="role-switch">
-  <label>תפקיד:</label>
-  <button id="roleSubmitter" class="active" onclick="switchRole('submitter')">עורך בקשה</button>
-  <button id="roleReviewer" onclick="switchRole('reviewer')">אדריכלית העיר</button>
-  <button id="logoutBtn" class="btn btn-light btn-sm hidden" onclick="logoutReviewer()" style="margin-right:6px;">יציאה ↩</button>
-  <button id="submitterLogoutBtn" class="btn btn-light btn-sm hidden" onclick="clearSubmitterIdentity()" style="margin-right:6px;">יציאה ↩</button>
-  <span id="submitterGreeting" style="font-size:12px;color:var(--text-light);display:none;"></span>
-</div>
-
-<!-- SUBMITTER LOGIN MODAL -->
-<div id="submitterLoginModal" class="modal">
-  <div class="modal-content" style="max-width:380px;">
-    <div class="modal-header">
-      <h2>כניסה — עורך בקשה</h2>
-    </div>
-    <p style="font-size:13px;color:var(--text-light);margin-bottom:14px;">הזינו את פרטיכם כדי לגשת לבקשות שלכם או להגיש בקשה חדשה.</p>
-    <div class="form-group" style="margin-bottom:10px;">
-      <label>שם מלא</label>
-      <input type="text" id="loginNameInput" placeholder="שם מלא" autocomplete="name"
-             onkeydown="if(event.key==='Enter') document.getElementById('loginPhoneInput').focus()"
-             style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;">
-    </div>
-    <div class="form-group" style="margin-bottom:10px;">
-      <label>מספר טלפון</label>
-      <input type="tel" id="loginPhoneInput" placeholder="05X-XXXXXXX" autocomplete="tel"
-             onkeydown="if(event.key==='Enter') submitterLogin()"
-             style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:14px;direction:ltr;">
-    </div>
-    <p id="loginError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">יש למלא שם וטלפון</p>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="submitterLogin()">כניסה</button>
-    </div>
+<!-- ROLE SWITCH (reviewer switch — submitters don't see this) -->
+<div id="roleSwitchBar" style="display:none;">
+  <div class="role-switch">
+    <label>תפקיד:</label>
+    <button id="roleSubmitter" onclick="switchRole('submitter')">עורך בקשה</button>
+    <button id="roleReviewer" class="active" onclick="switchRole('reviewer')">אדריכלית העיר</button>
   </div>
 </div>
 
@@ -340,6 +420,10 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
           <button class="btn btn-primary btn-sm" style="margin-top:6px;" onclick="saveDocNote()">שמור הערה</button>
         </div>
       </div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterInstructions')">← חזור להנחיות</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterChecklist')">המשך לצ׳ק ליסט ←</button>
+      </div>
     </div>
   </div>
 
@@ -365,8 +449,33 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
           <li data-edit-key="req3" style="margin-bottom:5px;"><strong>תוקף:</strong> 10 שנים ממועד אישור (עד 11/2034)</li>
         </ul>
       </div>
+      <div style="margin-top:24px;background:var(--light-bg);border-radius:8px;padding:18px 20px;">
+        <h3 style="margin-bottom:12px;font-size:15px;">מדריך השימוש במערכת</h3>
+        <div style="display:grid;gap:10px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">1</span>
+            <div><strong>הנחיות</strong> (דף זה) — קראו את תנאי הזכאות, דרישות התוכנית וקווי הבניין לפני שמתחילים.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">2</span>
+            <div><strong>מסמכי התוכנית</strong> — עיינו בתשריטים, בהוראות ובקישורים הרשמיים שמעלה אדריכלית העיר.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">3</span>
+            <div><strong>צ׳ק ליסט</strong> — סמנו כל מסמך ואישור שמוכן. פריטים חסרים יסומנו לאדריכלית בסיכום הבקשה.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">4</span>
+            <div><strong>טופס הגשה</strong> — מלאו פרטים, צרפו תוכנית בינוי והדמייה, ושלחו לאדריכלית העיר.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">5</span>
+            <div><strong>מעקב בקשה</strong> — ראו את סטטוס הבקשה, הערות אדריכלית העיר, ואפשרות לערוך ולשלוח גרסה מעודכנת.</div>
+          </div>
+        </div>
+      </div>
       <div style="margin-top:20px;text-align:center;">
-        <button class="btn btn-primary" onclick="goToPage('submitterForm')">התחל הגשת בקשה חדשה ←</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterDocuments')">המשך למסמכי התוכנית ←</button>
       </div>
     </div>
   </div>
@@ -460,7 +569,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
       </div>
 
       <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
-        <button class="btn btn-light" onclick="goToPage('submitterChecklist')">בדוק צ׳ק ליסט ←</button>
+        <button class="btn btn-light" onclick="goToPage('submitterChecklist')">← חזור לצ׳ק ליסט</button>
         <button class="btn btn-primary" onclick="submitRequest()">שלח בקשה ←</button>
       </div>
     </div>
@@ -534,8 +643,8 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
       </div>
 
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-light" onclick="goToPage('submitterForm')">← חזור לטופס</button>
-        <button class="btn btn-primary" onclick="goToPage('submitterForm')">המשך להגשה ←</button>
+        <button class="btn btn-light" onclick="goToPage('submitterDocuments')">← חזור למסמכים</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterForm')">המשך לטופס הגשה ←</button>
       </div>
     </div>
   </div>
@@ -625,6 +734,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
   <p>© 2024 עיריית אשדוד | מערכת ניהול בקשות תוכנית רובע ז׳ | 603-0595660</p>
 </footer>
 </div><!-- /container -->
+</div><!-- /appShell -->
 <div id="dbStatusBadge" class="db-status local">שמירה מקומית</div>
 
 <!-- LOCATION MODAL -->
@@ -826,14 +936,34 @@ function seedInitialData() {
 document.addEventListener('DOMContentLoaded', function() {
   initSupabase();
   seedInitialData();
+  setupViewerEvents();
+
+  // If user already identified (session survived page reload), skip landing
+  const savedName = sessionStorage.getItem('submitterName');
+  const savedRole = sessionStorage.getItem('reviewerAuth');
+  if (savedName || savedRole === '1') {
+    document.getElementById('landingScreen').style.display = 'none';
+    document.getElementById('appShell').style.display = '';
+    if (savedName) {
+      submitterIdentityName = savedName;
+      submitterIdentityPhone = sessionStorage.getItem('submitterPhone') || '';
+    }
+    if (savedRole === '1') {
+      currentRole = 'reviewer';
+    }
+  }
+
   renderNavTabs();
   loadPersistentPageContent();
   initializeChecklist();
   initializeUploadZones();
-  setupViewerEvents();
   loadRequests();
   renderDocumentsPage();
   updateSubmitterGreeting();
+  if (savedRole === '1') {
+    const roleBar = document.getElementById('roleSwitchBar');
+    if (roleBar) roleBar.style.display = '';
+  }
   setTimeout(() => { if (document.getElementById('map') && !map) initializeMap(); }, 150);
 });
 
@@ -841,6 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function switchRole(role) {
   if (role === 'reviewer') {
     if (sessionStorage.getItem('reviewerAuth') === '1') {
+      closeLanding();
       _doSwitchRole('reviewer');
     } else {
       openReviewerPasswordModal();
@@ -893,10 +1024,16 @@ function updateSubmitterGreeting() {
 
 function _doSwitchRole(role) {
   currentRole = role;
-  document.getElementById('roleSubmitter').classList.toggle('active', role === 'submitter');
-  document.getElementById('roleReviewer').classList.toggle('active', role === 'reviewer');
+  const roleBar = document.getElementById('roleSwitchBar');
+  if (roleBar) roleBar.style.display = role === 'reviewer' ? '' : 'none';
+  const rSub = document.getElementById('roleSubmitter');
+  const rRev = document.getElementById('roleReviewer');
+  if (rSub) rSub.classList.toggle('active', role === 'submitter');
+  if (rRev) rRev.classList.toggle('active', role === 'reviewer');
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) logoutBtn.classList.toggle('hidden', role !== 'reviewer');
+  const subLogoutBtn = document.getElementById('submitterLogoutBtn');
+  if (subLogoutBtn) subLogoutBtn.classList.toggle('hidden', role !== 'submitter');
   updateSubmitterGreeting();
   renderNavTabs();
   goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
@@ -905,11 +1042,11 @@ function _doSwitchRole(role) {
 function renderNavTabs() {
   const tabs = currentRole === 'submitter'
     ? [
-        { id: 'submitterDocuments', label: 'מסמכי התוכנית' },
-        { id: 'submitterInstructions', label: 'הנחיות' },
-        { id: 'submitterForm', label: 'טופס הגשה' },
-        { id: 'submitterChecklist', label: "צ'ק ליסט" },
-        { id: 'submitterTracker', label: 'מעקב' }
+        { id: 'submitterInstructions', label: '1. הנחיות' },
+        { id: 'submitterDocuments',    label: '2. מסמכי התוכנית' },
+        { id: 'submitterChecklist',    label: "3. צ'ק ליסט" },
+        { id: 'submitterForm',         label: '4. טופס הגשה' },
+        { id: 'submitterTracker',      label: '5. מעקב בקשה' }
       ]
     : [
         { id: 'reviewerDashboard', label: 'רשימת בקשות' },
@@ -2163,6 +2300,7 @@ async function setReviewerPassword() {
   reviewerPasswordHash = hash;
   sessionStorage.setItem('reviewerAuth', '1');
   closeReviewerPasswordModal();
+  closeLanding();
   _doSwitchRole('reviewer');
 }
 
@@ -2172,6 +2310,7 @@ async function verifyReviewerPassword() {
   if (hash === reviewerPasswordHash) {
     sessionStorage.setItem('reviewerAuth', '1');
     closeReviewerPasswordModal();
+    closeLanding();
     _doSwitchRole('reviewer');
   } else {
     document.getElementById('reviewerPasswordError').style.display = 'block';
@@ -2182,7 +2321,7 @@ async function verifyReviewerPassword() {
 
 function logoutReviewer() {
   sessionStorage.removeItem('reviewerAuth');
-  _doSwitchRole('submitter');
+  goBackToLanding();
 }
 
 // ===== SUBMITTER IDENTITY =====
@@ -2231,6 +2370,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const si = document.getElementById('searchInput');
   if (si) si.addEventListener('input', filterRequests);
 });
+
+// ===== LANDING PAGE =====
+function landingEnter() {
+  const first = document.getElementById('landingFirstName').value.trim();
+  const last  = document.getElementById('landingLastName').value.trim();
+  const errEl = document.getElementById('landingError');
+  if (!first || !last) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const fullName = first + ' ' + last;
+  submitterIdentityName = fullName;
+  submitterIdentityPhone = sessionStorage.getItem('submitterPhone') || '';
+  sessionStorage.setItem('submitterName', fullName);
+  closeLanding();
+  updateSubmitterGreeting();
+  _doSwitchRole('submitter');
+  goToPage('submitterInstructions');
+}
+
+function closeLanding() {
+  document.getElementById('landingScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = '';
+}
+
+function goBackToLanding() {
+  submitterIdentityName = null;
+  submitterIdentityPhone = null;
+  sessionStorage.removeItem('submitterName');
+  sessionStorage.removeItem('submitterPhone');
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('landingScreen').style.display = '';
+  document.getElementById('landingFirstName').value = '';
+  document.getElementById('landingLastName').value = '';
+}
 </script>
 </body>
 </html>
