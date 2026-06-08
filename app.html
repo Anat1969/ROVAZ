@@ -314,12 +314,15 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
       <h2>כניסה למערכת</h2>
       <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">הזינו שם פרטי ושם משפחה. אין צורך בסיסמה.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
-        <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="given-name"
+        <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="off" list="firstNameList"
+               oninput="updateLastNameList()"
                onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()"
                style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
-        <input type="text" id="landingLastName" placeholder="שם משפחה" autocomplete="family-name"
+        <datalist id="firstNameList"></datalist>
+        <input type="text" id="landingLastName" placeholder="שם משפחה" autocomplete="off" list="lastNameList"
                onkeydown="if(event.key==='Enter') landingEnter()"
                style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
+        <datalist id="lastNameList"></datalist>
       </div>
       <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">נא למלא שם פרטי ושם משפחה</p>
       <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;" onclick="landingEnter()">כניסה ←</button>
@@ -953,6 +956,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  populateLandingDatalist();
   renderNavTabs();
   loadPersistentPageContent();
   initializeChecklist();
@@ -1038,11 +1042,11 @@ function _doSwitchRole(role) {
 function renderNavTabs() {
   const tabs = currentRole === 'submitter'
     ? [
-        { id: 'submitterTracker',      label: 'הבקשות שלי' },
-        { id: 'submitterInstructions', label: 'הנחיות' },
-        { id: 'submitterDocuments',    label: 'מסמכי התוכנית' },
+        { id: 'submitterTracker',      label: 'מעקב בקשות' },
+        { id: 'submitterForm',         label: 'טופס בקשה' },
         { id: 'submitterChecklist',    label: "צ'ק ליסט" },
-        { id: 'submitterForm',         label: 'הגשת בקשה' }
+        { id: 'submitterDocuments',    label: 'מסמכי התוכנית' },
+        { id: 'submitterInstructions', label: 'הנחיות' }
       ]
     : [
         { id: 'reviewerDashboard', label: 'רשימת בקשות' },
@@ -2474,6 +2478,33 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== LANDING PAGE =====
 const REVIEWER_NAMES = ['אדריכלית העיר', 'אדריכלית עיר'];
 
+function savedLoginNames() {
+  return JSON.parse(localStorage.getItem('knownLoginNames') || '[]');
+}
+
+function saveLoginName(fullName) {
+  const names = savedLoginNames();
+  if (!names.includes(fullName)) {
+    names.unshift(fullName);
+    localStorage.setItem('knownLoginNames', JSON.stringify(names.slice(0, 50)));
+  }
+}
+
+function populateLandingDatalist() {
+  const names = savedLoginNames();
+  const firstNames = [...new Set(names.map(n => n.split(' ')[0]))];
+  const fl = document.getElementById('firstNameList');
+  if (fl) fl.innerHTML = firstNames.map(n => `<option value="${n}">`).join('');
+}
+
+function updateLastNameList() {
+  const first = (document.getElementById('landingFirstName').value || '').trim();
+  const names = savedLoginNames().filter(n => !first || n.startsWith(first + ' '));
+  const lastNames = [...new Set(names.map(n => n.split(' ').slice(1).join(' ')).filter(Boolean))];
+  const ll = document.getElementById('lastNameList');
+  if (ll) ll.innerHTML = lastNames.map(n => `<option value="${n}">`).join('');
+}
+
 function landingEnter() {
   const first = document.getElementById('landingFirstName').value.trim();
   const last  = document.getElementById('landingLastName').value.trim();
@@ -2495,13 +2526,13 @@ function landingEnter() {
     return;
   }
 
-  // Regular submitter
+  // Regular submitter — save name for next time
+  saveLoginName(fullName);
   submitterIdentityName = fullName;
   sessionStorage.setItem('submitterName', fullName);
   closeLanding();
   updateSubmitterGreeting();
   _doSwitchRole('submitter');
-  // Go directly to their requests if they have any, else instructions
   goToPage('submitterTracker');
 }
 
