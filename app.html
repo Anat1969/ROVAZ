@@ -312,7 +312,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 
     <div class="landing-login-card">
       <h2>כניסה למערכת</h2>
-      <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">הזינו את שמכם כדי להיכנס. אין צורך בסיסמה.</p>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">הזינו שם פרטי ושם משפחה. אין צורך בסיסמה.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
         <input type="text" id="landingFirstName" placeholder="שם פרטי" autocomplete="given-name"
                onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()"
@@ -322,10 +322,8 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
                style="flex:1;min-width:130px;max-width:180px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
       </div>
       <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:10px;display:none;">נא למלא שם פרטי ושם משפחה</p>
-      <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;" onclick="landingEnter()">כניסה למערכת ←</button>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-        <button class="btn btn-light btn-sm" onclick="switchRole('reviewer');closeLanding();">כניסה כאדריכלית העיר</button>
-      </div>
+      <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;" onclick="landingEnter()">כניסה ←</button>
+      <p style="font-size:11px;color:var(--text-light);margin-top:10px;">אדריכלית העיר — הכנסי "אדריכלית" ו-"העיר"</p>
     </div>
   </div>
 </div>
@@ -950,6 +948,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (savedRole === '1') {
       currentRole = 'reviewer';
+      const roleBar = document.getElementById('roleSwitchBar');
+      if (roleBar) roleBar.style.display = '';
     }
   }
 
@@ -960,10 +960,6 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRequests();
   renderDocumentsPage();
   updateSubmitterGreeting();
-  if (savedRole === '1') {
-    const roleBar = document.getElementById('roleSwitchBar');
-    if (roleBar) roleBar.style.display = '';
-  }
   setTimeout(() => { if (document.getElementById('map') && !map) initializeMap(); }, 150);
 });
 
@@ -1036,17 +1032,17 @@ function _doSwitchRole(role) {
   if (subLogoutBtn) subLogoutBtn.classList.toggle('hidden', role !== 'submitter');
   updateSubmitterGreeting();
   renderNavTabs();
-  goToPage(role === 'submitter' ? 'submitterInstructions' : 'reviewerDashboard');
+  goToPage(role === 'submitter' ? 'submitterTracker' : 'reviewerDashboard');
 }
 
 function renderNavTabs() {
   const tabs = currentRole === 'submitter'
     ? [
-        { id: 'submitterInstructions', label: '1. הנחיות' },
-        { id: 'submitterDocuments',    label: '2. מסמכי התוכנית' },
-        { id: 'submitterChecklist',    label: "3. צ'ק ליסט" },
-        { id: 'submitterForm',         label: '4. טופס הגשה' },
-        { id: 'submitterTracker',      label: '5. מעקב בקשה' }
+        { id: 'submitterTracker',      label: 'הבקשות שלי' },
+        { id: 'submitterInstructions', label: 'הנחיות' },
+        { id: 'submitterDocuments',    label: 'מסמכי התוכנית' },
+        { id: 'submitterChecklist',    label: "צ'ק ליסט" },
+        { id: 'submitterForm',         label: 'הגשת בקשה' }
       ]
     : [
         { id: 'reviewerDashboard', label: 'רשימת בקשות' },
@@ -1078,7 +1074,7 @@ function goToPage(pageId) {
     }
     if (pageId === 'submitterDocuments') renderDocumentsPage();
     if (pageId === 'submitterTracker') {
-      if (!submitterIdentityPhone) {
+      if (!submitterIdentityName) {
         document.getElementById('phoneGate').classList.remove('hidden');
         document.getElementById('trackerContent').style.display = 'none';
       } else {
@@ -1553,41 +1549,157 @@ async function loadRequests() {
   updateMapMarkers();
 }
 
+function myRequestsForCurrentUser() {
+  if (!submitterIdentityName) return [];
+  const nameLower = submitterIdentityName.trim().toLowerCase();
+  return requests.filter(r => (r.submitterName || '').trim().toLowerCase() === nameLower);
+}
+
 function renderSubmitterTracker() {
   const tracker = document.getElementById('trackerContent');
   if (!tracker) return;
-  // Filter to this submitter's requests only
-  const myRequests = submitterIdentityPhone
-    ? requests.filter(r => r.submitterPhone === submitterIdentityPhone)
-    : requests;
-  const active = myRequests.filter(r => !r.superseded);
-  const identityLabel = submitterIdentityName
-    ? `${submitterIdentityName} (${submitterIdentityPhone})`
-    : submitterIdentityPhone || '';
-  const identityHeader = submitterIdentityPhone
-    ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 12px;background:var(--light-bg);border-radius:4px;font-size:12px;">
-        <span>מציג בקשות עבור: <strong>${identityLabel}</strong></span>
-        <button class="btn btn-light btn-sm" onclick="clearSubmitterIdentity()">זה לא אני</button>
-       </div>`
-    : '';
-  if (!active.length) {
-    tracker.innerHTML = identityHeader + '<p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עבור מספר זה.</p>';
+  if (!submitterIdentityName) {
+    tracker.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px 0;">יש להיכנס למערכת תחילה.</p>';
     return;
   }
-  // Build version chains: group by originalId (or own id if root)
+  const myRequests = myRequestsForCurrentUser();
+  const active = myRequests.filter(r => !r.superseded);
+
+  const identityHeader = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:10px 14px;background:var(--light-bg);border-radius:6px;font-size:13px;">
+    <span>מחובר כ: <strong>${escapeHtml(submitterIdentityName)}</strong></span>
+    <button class="btn btn-primary btn-sm" onclick="goToPage('submitterForm')">+ הגש בקשה חדשה</button>
+  </div>`;
+
+  if (!active.length) {
+    tracker.innerHTML = identityHeader + `
+      <div style="text-align:center;padding:32px 20px;background:white;border-radius:8px;border:2px dashed var(--border);">
+        <p style="color:var(--text-light);margin-bottom:14px;">עדיין לא הגשת בקשות במערכת.</p>
+        <button class="btn btn-primary" onclick="goToPage('submitterInstructions')">התחל — קרא הנחיות ←</button>
+      </div>`;
+    return;
+  }
+
+  // Build version chains
   const chains = {};
   myRequests.forEach(req => {
     const root = req.originalId || req.id;
     if (!chains[root]) chains[root] = [];
     chains[root].push(req);
   });
-  // Sort each chain by version
   Object.values(chains).forEach(chain => chain.sort((a,b) => (a.version||1) - (b.version||1)));
   const latestByRoot = {};
-  Object.entries(chains).forEach(([root, chain]) => {
-    latestByRoot[root] = chain[chain.length - 1];
+  Object.entries(chains).forEach(([root, chain]) => { latestByRoot[root] = chain[chain.length - 1]; });
+
+  // Table view
+  const tableRows = active.map(req => {
+    const rootId = req.originalId || req.id;
+    if (req.id !== (latestByRoot[rootId] || req).id) return '';
+    const canEdit = req.status !== 'approved';
+    const editBtn = canEdit
+      ? `<button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך</button>`
+      : `<span style="font-size:11px;color:var(--green);font-weight:600;">אושר — נעול</span>`;
+    const vBadge = req.version > 1 ? `<span class="version-badge" style="margin-left:4px;">v${req.version}</span>` : '';
+    const lastComment = req.comments && req.comments.length ? req.comments[req.comments.length-1].text : '—';
+    return `<tr onclick="openSubmitterDetail(${req.id})" style="cursor:pointer;">
+      <td>${vBadge}<strong>${escapeHtml(req.address)}</strong></td>
+      <td>${escapeHtml(req.applicantName||'—')}</td>
+      <td><span class="badge badge-${req.status}">${translateStatus(req.status)}</span></td>
+      <td>${req.createdAt}</td>
+      <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--text-light);">${escapeHtml(lastComment)}</td>
+      <td onclick="event.stopPropagation();">${editBtn}</td>
+    </tr>`;
+  }).join('');
+
+  tracker.innerHTML = identityHeader + `
+    <div class="table-wrapper" style="margin-bottom:20px;">
+      <table>
+        <thead><tr>
+          <th>כתובת</th><th>מבקש</th><th>סטטוס</th><th>תאריך</th><th>הערת אדריכלית</th><th>עריכה</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+    <div id="submitterDetailPanel"></div>`;
+
+  // Map for submitter's own requests
+  renderSubmitterMap(active.filter(r => r.lat && r.lng));
+}
+
+function openSubmitterDetail(id) {
+  const req = requests.find(r => r.id === id);
+  if (!req) return;
+  const panel = document.getElementById('submitterDetailPanel');
+  if (!panel) return;
+  const canEdit = req.status !== 'approved';
+  const approvedNote = !canEdit
+    ? `<div style="background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:6px;margin-bottom:10px;font-size:13px;">✓ בקשה זו אושרה סופית ואינה ניתנת לעריכה.</div>`
+    : '';
+  const commentsHtml = req.comments && req.comments.length
+    ? req.comments.map(c => `<div style="padding:8px 10px;background:#fff8e1;border-right:3px solid #f39c12;border-radius:4px;margin-bottom:6px;font-size:13px;">${escapeHtml(c.text)}<span style="font-size:11px;color:var(--text-light);margin-right:8px;">${c.date}</span></div>`).join('')
+    : '<p style="color:var(--text-light);font-size:13px;">אין הערות עדיין.</p>';
+  panel.innerHTML = `
+    <div class="detail-section" style="border:2px solid var(--border);border-radius:8px;padding:18px;margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">${escapeHtml(req.address)}</h3>
+        <span class="badge badge-${req.status}">${translateStatus(req.status)}</span>
+      </div>
+      ${approvedNote}
+      <div class="form-row" style="margin-bottom:12px;">
+        <div><strong>מבקש:</strong> ${escapeHtml(req.applicantName||'—')}</div>
+        <div><strong>גוש/חלקה:</strong> ${req.gushNumber||'—'} / ${req.helkaNumber||'—'}</div>
+        <div><strong>הוגשה:</strong> ${req.createdAt}</div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <strong>הערות אדריכלית העיר:</strong>
+        <div style="margin-top:8px;">${commentsHtml}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${canEdit ? `<button class="btn btn-primary btn-sm" onclick="editRequest(${req.id})">ערוך ושלח גרסה מעודכנת ←</button>` : ''}
+        <button class="btn btn-light btn-sm" onclick="document.getElementById('submitterDetailPanel').innerHTML=''">סגור</button>
+      </div>
+    </div>`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+let submitterMap = null;
+let submitterMarkers = [];
+function renderSubmitterMap(reqs) {
+  // inject map container if not present
+  let mapDiv = document.getElementById('submitterMiniMap');
+  if (!mapDiv) {
+    const panel = document.getElementById('trackerContent');
+    const container = document.createElement('div');
+    container.innerHTML = '<div id="submitterMiniMap" style="height:280px;border-radius:8px;overflow:hidden;margin-top:20px;border:1px solid var(--border);"></div>';
+    panel.appendChild(container.firstChild);
+    mapDiv = document.getElementById('submitterMiniMap');
+  }
+  if (!submitterMap) {
+    submitterMap = L.map('submitterMiniMap').setView(ashdodCenter, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(submitterMap);
+  }
+  submitterMarkers.forEach(m => submitterMap.removeLayer(m));
+  submitterMarkers = [];
+  const colorMap = { pending: '#e67e22', approved: '#1a7340', rejected: '#c0392b' };
+  reqs.forEach(req => {
+    const m = L.circleMarker([req.lat, req.lng], {
+      radius: 10, fillColor: colorMap[req.status]||'#888', color: '#fff', weight: 2, fillOpacity: 0.9
+    }).addTo(submitterMap);
+    m.bindPopup(`<div dir="rtl"><strong>${escapeHtml(req.address)}</strong><br><span style="color:${colorMap[req.status]};font-weight:700;">${translateStatus(req.status)}</span></div>`);
+    submitterMarkers.push(m);
   });
-  tracker.innerHTML = identityHeader + active.map(req => {
+  if (reqs.length) {
+    const group = L.featureGroup(submitterMarkers);
+    submitterMap.fitBounds(group.getBounds().pad(0.3));
+  }
+  setTimeout(() => submitterMap && submitterMap.invalidateSize(), 200);
+}
+
+function _legacyRenderSubmitterTracker() {
+  // legacy shim — replaced by renderSubmitterTracker
+}
+
+// dummy to keep old refs working
+function renderSubmitterTrackerLegacyItem(req, chains, latestByRoot) {
     const rootId = req.originalId || req.id;
     if (req.id !== (latestByRoot[rootId] || req).id) return '';
     const chain = chains[rootId] || [req];
@@ -1597,7 +1709,7 @@ function renderSubmitterTracker() {
       <div class="version-tree">
         <div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">גרסאות קודמות:</div>
         ${olderVersions.map(v => `
-          <div class="version-tree-item" onclick="viewRequestDetails(${v.id})">
+          <div class="version-tree-item" onclick="openSubmitterDetail(${v.id})">
             <div class="vt-line"></div><div class="vt-dot"></div>
             <span>v${v.version||1} — ${v.createdAt}</span>
             <span class="badge badge-${v.status}" style="margin-right:auto;">${translateStatus(v.status)}</span>
@@ -1617,13 +1729,6 @@ function renderSubmitterTracker() {
             ${req.comments.map(c => `<div style="font-size:12px;color:#5d4037;margin-bottom:3px;">${escapeHtml(c.text)} <span style="color:var(--text-light);font-size:11px;">(${c.date})</span></div>`).join('')}
           </div>` : ''}
         <div style="margin-top:10px;display:flex;gap:8px;">
-          <button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך ושלח מחדש</button>
-        </div>
-        ${olderHtml}
-      </div>`;
-  }).join('');
-}
-
 function filterRequests() {
   const search = (document.getElementById('searchInput') || {value:''}).value.toLowerCase();
   const filter = (document.getElementById('filterStatus') || {value:''}).value;
@@ -1719,6 +1824,10 @@ function translateStatus(s) {
 function editRequest(id) {
   const req = requests.find(r => r.id === id);
   if (!req) return;
+  if (req.status === 'approved') {
+    alert('בקשה זו אושרה סופית ואינה ניתנת לעריכה.');
+    return;
+  }
   editingFromId = id;
   // Pre-fill form
   const set = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val || ''; };
@@ -2343,16 +2452,7 @@ function prefillFormFromIdentity() {
 }
 
 function clearSubmitterIdentity() {
-  submitterIdentityPhone = null;
-  submitterIdentityName = null;
-  sessionStorage.removeItem('submitterPhone');
-  sessionStorage.removeItem('submitterName');
-  updateSubmitterGreeting();
-  if (currentPage === 'submitterTracker') {
-    document.getElementById('trackerContent').style.display = 'none';
-    document.getElementById('trackerContent').innerHTML = '';
-    document.getElementById('phoneGate').classList.remove('hidden');
-  }
+  goBackToLanding();
 }
 
 // ===== UTILITIES =====
@@ -2372,6 +2472,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== LANDING PAGE =====
+const REVIEWER_NAMES = ['אדריכלית העיר', 'אדריכלית עיר'];
+
 function landingEnter() {
   const first = document.getElementById('landingFirstName').value.trim();
   const last  = document.getElementById('landingLastName').value.trim();
@@ -2379,13 +2481,28 @@ function landingEnter() {
   if (!first || !last) { errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
   const fullName = first + ' ' + last;
+
+  // Reviewer detection by name
+  if (REVIEWER_NAMES.includes(fullName)) {
+    closeLanding();
+    sessionStorage.setItem('reviewerAuth', '1');
+    currentRole = 'reviewer';
+    const roleBar = document.getElementById('roleSwitchBar');
+    if (roleBar) roleBar.style.display = '';
+    updateSubmitterGreeting();
+    renderNavTabs();
+    goToPage('reviewerDashboard');
+    return;
+  }
+
+  // Regular submitter
   submitterIdentityName = fullName;
-  submitterIdentityPhone = sessionStorage.getItem('submitterPhone') || '';
   sessionStorage.setItem('submitterName', fullName);
   closeLanding();
   updateSubmitterGreeting();
   _doSwitchRole('submitter');
-  goToPage('submitterInstructions');
+  // Go directly to their requests if they have any, else instructions
+  goToPage('submitterTracker');
 }
 
 function closeLanding() {
@@ -2398,6 +2515,8 @@ function goBackToLanding() {
   submitterIdentityPhone = null;
   sessionStorage.removeItem('submitterName');
   sessionStorage.removeItem('submitterPhone');
+  sessionStorage.removeItem('reviewerAuth');
+  currentRole = 'submitter';
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('landingScreen').style.display = '';
   document.getElementById('landingFirstName').value = '';
