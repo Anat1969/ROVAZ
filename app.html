@@ -315,9 +315,9 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
 
       <!-- TAB toggle -->
       <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px;">
-        <button id="tabExisting" onclick="showLoginTab('existing')"
+        <button type="button" id="tabExisting" onclick="showLoginTab('existing')"
           style="flex:1;padding:10px;border:none;background:var(--primary);color:white;font-size:13px;font-weight:600;cursor:pointer;">משתמש קיים</button>
-        <button id="tabNew" onclick="showLoginTab('new')"
+        <button type="button" id="tabNew" onclick="showLoginTab('new')"
           style="flex:1;padding:10px;border:none;background:white;color:var(--text-dark);font-size:13px;cursor:pointer;">משתמש חדש</button>
       </div>
 
@@ -329,7 +329,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
           <option value="">— בחרו שם —</option>
         </select>
         <p id="landingErrorExisting" style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none;">נא לבחור שם מהרשימה</p>
-        <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
+        <button type="button" class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
           onclick="landingEnterExisting()">כניסה ←</button>
       </div>
 
@@ -345,7 +345,7 @@ footer{text-align:center;padding:16px;color:var(--text-light);margin-top:20px;bo
                  style="flex:1;min-width:130px;max-width:172px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;font-size:15px;text-align:center;">
         </div>
         <p id="landingError" style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none;">נא למלא שם פרטי ושם משפחה</p>
-        <button class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
+        <button type="button" class="btn btn-primary" style="width:100%;max-width:360px;padding:13px;font-size:15px;"
           onclick="landingEnter()">כניסה ←</button>
       </div>
 
@@ -961,9 +961,9 @@ function seedInitialData() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', function() {
-  initSupabase();
-  seedInitialData();
-  setupViewerEvents();
+  try { initSupabase(); } catch(e) { console.error('initSupabase:', e); }
+  try { seedInitialData(); } catch(e) { console.error('seedInitialData:', e); }
+  try { setupViewerEvents(); } catch(e) { console.error('setupViewerEvents:', e); }
 
   // If user already identified (session survived page reload), skip landing
   const savedName = sessionStorage.getItem('submitterName');
@@ -982,14 +982,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  populateLandingDatalist();
-  renderNavTabs();
-  loadPersistentPageContent();
-  initializeChecklist();
-  initializeUploadZones();
-  loadRequests();
-  renderDocumentsPage();
-  updateSubmitterGreeting();
+  try { populateLandingDatalist(); } catch(e) { console.error('populateLandingDatalist:', e); }
+  try { renderNavTabs(); } catch(e) { console.error('renderNavTabs:', e); }
+  try { loadPersistentPageContent(); } catch(e) { console.error('loadPersistentPageContent:', e); }
+  try { initializeChecklist(); } catch(e) { console.error('initializeChecklist:', e); }
+  try { initializeUploadZones(); } catch(e) { console.error('initializeUploadZones:', e); }
+  try { loadRequests(); } catch(e) { console.error('loadRequests:', e); }
+  try { renderDocumentsPage(); } catch(e) { console.error('renderDocumentsPage:', e); }
+  try { updateSubmitterGreeting(); } catch(e) { console.error('updateSubmitterGreeting:', e); }
   setTimeout(() => { if (document.getElementById('map') && !map) initializeMap(); }, 150);
 });
 
@@ -1081,7 +1081,7 @@ function renderNavTabs() {
       ];
 
   document.getElementById('navTabs').innerHTML = tabs.map(t =>
-    `<button class="${currentPage === t.id ? 'active' : ''}" onclick="goToPage('${t.id}')">${t.label}</button>`
+    ` <button class="${currentPage === t.id ? 'active' : ''}" onclick="goToPage('${t.id}')">${t.label}</button>`
   ).join('');
 
   const toolbar = document.getElementById('editorToolbar');
@@ -1226,8 +1226,8 @@ function renderDocFiles() {
       ? `<img src="${file.data}" style="width:60px;height:44px;object-fit:cover;border-radius:3px;cursor:pointer;border:1px solid var(--border);" onclick="openImageFullscreen('${file.data}')">`
       : `<span style="font-size:20px;">📄</span>`;
     const openBtn = isImage
-      ? `<button class="btn btn-light btn-sm" onclick="openImageFullscreen('${file.data}')">צפה</button>`
-      : `<a class="btn btn-light btn-sm" href="${file.data}" target="_blank" download="${escapeHtml(file.name)}">פתח</a>`;
+      ? ` <button class="btn btn-light btn-sm" onclick="openImageFullscreen('${file.data}')">צפה</button>`
+      : ` <a class="btn btn-light btn-sm" href="${file.data}" target="_blank" download="${escapeHtml(file.name)}">פתח</a>`;
     return `
       <div class="doc-file-item">
         ${preview}
@@ -1354,12 +1354,12 @@ function handleAttachmentSelect(file, type) {
     tempUploads[type] = { name: file.name, type: file.type, data: src };
     zone.querySelector('.zone-prompt').style.display = 'none';
     content.style.display = 'block';
-    const removeBtn = `<button class="zone-remove" onclick="clearUploadZone('${type}')" title="הסר">×</button>`;
+    const removeBtn = ` <button class="zone-remove" onclick="clearUploadZone('${type}')" title="הסר">×</button>`;
     if (file.type.startsWith('image/')) {
       const escapedSrc = src.replace(/'/g, "\\'");
       content.innerHTML = removeBtn + `<img src="${src}" onclick="openImageFullscreen('${escapedSrc}')" style="cursor:pointer;">`;
     } else {
-      content.innerHTML = removeBtn + `<div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(file.name)}</span><a href="${src}" target="_blank" class="btn btn-light btn-sm" onclick="event.stopPropagation()">פתח</a></div>`;
+      content.innerHTML = removeBtn + ` <div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(file.name)}</span><a href="${src}" target="_blank" class="btn btn-light btn-sm" onclick="event.stopPropagation()">פתח</a></div>`;
     }
   };
   reader.onerror = () => alert('שגיאה בהעלאת הקובץ. נסה שוב.');
@@ -1626,9 +1626,9 @@ function renderSubmitterTracker() {
     if (req.id !== (latestByRoot[rootId] || req).id) return '';
     const canEdit = req.status !== 'approved';
     const editBtn = canEdit
-      ? `<button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך</button>`
+      ? ` <button class="btn btn-light btn-sm" onclick="editRequest(${req.id})">ערוך</button>`
       : `<span style="font-size:11px;color:var(--green);font-weight:600;">אושר — נעול</span>`;
-    const vBadge = req.version > 1 ? `<span class="version-badge" style="margin-left:4px;">v${req.version}</span>` : '';
+    const vBadge = (req.version > 1) ? ('<span class="version-badge" style="margin-left:4px;">v' + req.version + '</span>') : '';
     const lastComment = req.comments && req.comments.length ? req.comments[req.comments.length-1].text : '—';
     return `<tr onclick="openSubmitterDetail(${req.id})" style="cursor:pointer;">
       <td>${vBadge}<strong>${escapeHtml(req.address)}</strong></td>
@@ -1684,7 +1684,7 @@ function openSubmitterDetail(id) {
         <div style="margin-top:8px;">${commentsHtml}</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${canEdit ? `<button class="btn btn-primary btn-sm" onclick="editRequest(${req.id})">ערוך ושלח גרסה מעודכנת ←</button>` : ''}
+        ${canEdit ? ` <button class="btn btn-primary btn-sm" onclick="editRequest(${req.id})">ערוך ושלח גרסה מעודכנת ←</button>` : ''}
         <button class="btn btn-light btn-sm" onclick="document.getElementById('submitterDetailPanel').innerHTML=''">סגור</button>
       </div>
     </div>`;
@@ -1734,7 +1734,7 @@ function renderSubmitterTrackerLegacyItem(req, chains, latestByRoot) {
     if (req.id !== (latestByRoot[rootId] || req).id) return '';
     const chain = chains[rootId] || [req];
     const olderVersions = chain.slice(0, chain.length - 1);
-    const versionBadge = req.version > 1 ? `<span class="version-badge">v${req.version}</span>` : '';
+    const versionBadge = (req.version > 1) ? ('<span class="version-badge">v' + req.version + '</span>') : '';
     const olderHtml = olderVersions.length ? `
       <div class="version-tree">
         <div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">גרסאות קודמות:</div>
@@ -1759,6 +1759,13 @@ function renderSubmitterTrackerLegacyItem(req, chains, latestByRoot) {
             ${req.comments.map(c => `<div style="font-size:12px;color:#5d4037;margin-bottom:3px;">${escapeHtml(c.text)} <span style="color:var(--text-light);font-size:11px;">(${c.date})</span></div>`).join('')}
           </div>` : ''}
         <div style="margin-top:10px;display:flex;gap:8px;">
+          <button class="btn btn-light btn-sm" onclick="openSubmitterDetail(${req.id})">פרטים</button>
+          ${req.status !== 'approved' ? '<button class="btn btn-primary btn-sm" onclick="editRequest(' + req.id + ')">ערוך</button>' : ''}
+        </div>
+        ${olderHtml}
+      </div>`;
+}
+
 function filterRequests() {
   const search = (document.getElementById('searchInput') || {value:''}).value.toLowerCase();
   const filter = (document.getElementById('filterStatus') || {value:''}).value;
@@ -1788,18 +1795,21 @@ function renderRequestTable(list) {
     return;
   }
   tbody.innerHTML = list.map((req, idx) => {
-    const vBadge = req.version > 1 ? `<span class="version-badge">v${req.version}</span>` : '';
+    const vBadge = (req.version > 1) ? ('<span class="version-badge">v' + req.version + '</span>') : '';
     const supersededStyle = req.superseded ? 'opacity:0.55;' : '';
-    return `
-      <tr class="row-${req.status}" style="${supersededStyle}">
-        <td>${String(idx + 1).padStart(3,'0')}</td>
-        <td>${vBadge}<strong>${req.address}</strong></td>
-        <td>${req.submitterName}</td>
-        <td>${req.applicantName || '—'}</td>
-        <td><span class="badge badge-${req.status}">${translateStatus(req.status)}</span></td>
-        <td>${req.createdAt}</td>
-        <td><button class="btn btn-light btn-sm" onclick="viewRequestDetails(${req.id})">פרטים</button></td>
-      </tr>`;
+    const rowClass = 'row-' + req.status;
+    const badgeClass = 'badge badge-' + req.status;
+    const num = String(idx + 1).padStart(3,'0');
+    const status = translateStatus(req.status);
+    return '<tr class="' + rowClass + '" style="' + supersededStyle + '">' +
+      '<td>' + num + '</td>' +
+      '<td>' + vBadge + '<strong>' + req.address + '</strong></td>' +
+      '<td>' + req.submitterName + '</td>' +
+      '<td>' + (req.applicantName || '—') + '</td>' +
+      '<td><span class="' + badgeClass + '">' + status + '</span></td>' +
+      '<td>' + req.createdAt + '</td>' +
+      '<td><button class="btn btn-light btn-sm" onclick="viewRequestDetails(' + req.id + ')">פרטים</button></td>' +
+      '</tr>';
   }).join('');
 }
 
@@ -1837,13 +1847,14 @@ function renderRequestEditors(list) {
   const seen = new Set();
   const unique = list.filter(r => { const k = r.submitterName + r.submitterEmail; if(seen.has(k)) return false; seen.add(k); return true; });
   if (!unique.length) { container.innerHTML = '<div style="color:var(--text-light);font-size:13px;">אין עורכים.</div>'; return; }
-  container.innerHTML = unique.map(req => `
-    <div class="editor-item">
-      <span class="editor-name">${req.submitterName}</span>
-      <span class="editor-meta">${req.submitterEmail || 'אין דוא"ל'}</span>
-      ${req.submitterEmail ? `<button class="btn btn-light editor-email-btn" onclick="openEmailPreview(${req.id})">מייל</button>` : ''}
-    </div>
-  `).join('');
+  container.innerHTML = unique.map(req => {
+    const emailBtn = req.submitterEmail ? '<button class="btn btn-light editor-email-btn" onclick="openEmailPreview(' + req.id + ')">מייל</button>' : '';
+    return '<div class="editor-item">' +
+      '<span class="editor-name">' + req.submitterName + '</span>' +
+      '<span class="editor-meta">' + (req.submitterEmail || 'אין דוא"ל') + '</span>' +
+      emailBtn +
+      '</div>';
+  }).join('');
 }
 
 function translateStatus(s) {
@@ -1901,12 +1912,12 @@ function showFileInZone(zoneId, contentId, attachment) {
   zone.querySelector('.zone-prompt').style.display = 'none';
   content.style.display = 'block';
   const type = attachment.type || '';
-  const removeBtn = `<button class="zone-remove" onclick="clearUploadZone('${zoneId === 'planUpload' ? 'plan' : 'visualization'}')" title="הסר">×</button>`;
+  const removeBtn = ` <button class="zone-remove" onclick="clearUploadZone('${zoneId === 'planUpload' ? 'plan' : 'visualization'}')" title="הסר">×</button>`;
   if (type.startsWith('image/')) {
     const s = attachment.data.replace(/'/g,"\\'");
     content.innerHTML = removeBtn + `<img src="${attachment.data}" onclick="openImageFullscreen('${s}')" style="cursor:pointer;">`;
   } else {
-    content.innerHTML = removeBtn + `<div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(attachment.name)}</span></div>`;
+    content.innerHTML = removeBtn + ` <div class="file-display"><span class="file-icon">📄</span><span class="file-name">${escapeHtml(attachment.name)}</span></div>`;
   }
 }
 
@@ -2027,7 +2038,7 @@ function viewRequestDetails(id) {
     ${filesHtml}
     ${checklistHtml}
 
-    ${missing.length ? `<div class="detail-section" style="border-right:3px solid #e67e22;">
+    ${missing.length ? ` <div class="detail-section" style="border-right:3px solid #e67e22;">
       <h4 style="color:var(--amber);">פריטים חסרים / לא מולאו (${missing.length})</h4>
       <ul style="margin-right:16px;">
         ${missing.map(i => `<li style="font-size:13px;margin-bottom:4px;">${escapeHtml(i.text)}${i.note ? ` — <em style="color:var(--text-light);">${escapeHtml(i.note)}</em>` : ''}</li>`).join('')}
@@ -2089,7 +2100,7 @@ function buildFilesHtml(req) {
     }
   }
   if (!items.length) return '';
-  return `<div class="detail-section"><h4>קבצים מצורפים</h4><div style="display:grid;gap:12px;">${items.join('')}</div></div>`;
+  return ` <div class="detail-section"><h4>קבצים מצורפים</h4><div style="display:grid;gap:12px;">${items.join('')}</div></div>`;
 }
 
 function buildChecklistHtml(req) {
@@ -2104,7 +2115,7 @@ function buildChecklistHtml(req) {
       <td style="padding:6px 8px;font-size:12px;color:var(--text-light);">${item.note ? escapeHtml(item.note) : ''}</td>
     </tr>`;
   }).join('');
-  return `<div class="detail-section">
+  return ` <div class="detail-section">
     <h4>צ׳ק ליסט (${checked}/${total})</h4>
     <table style="width:100%;border-collapse:collapse;">
       <thead style="background:var(--light-bg);">
