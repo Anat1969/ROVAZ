@@ -1247,8 +1247,9 @@ async function persistRequest(request) {
   if (supabaseClient) {
     try {
       const row = requestToRow(request);
-      await supabaseClient.from('requests').upsert(row, { onConflict: 'id' });
-    } catch(e) { console.warn('Supabase save failed:', e); }
+      const { error } = await supabaseClient.from('requests').upsert(row, { onConflict: 'id' });
+      if (error) console.error('Supabase save failed:', error.message, error.details, row.id);
+    } catch(e) { console.error('Supabase save exception:', e); }
   }
 }
 
@@ -1276,10 +1277,26 @@ async function loadRequests() {
       if (!error && data) {
         requests = data.map(rowToRequest);
         localStorage.setItem('requests', JSON.stringify(requests));
+        // One-time sync: push any local requests not yet in Supabase
+        const local = JSON.parse(localStorage.getItem('requests_pre_sync')) || JSON.parse(localStorage.getItem('requests')) || [];
+        const remoteIds = new Set(data.map(r => String(r.id)));
+        const toSync = local.filter(r => !remoteIds.has(String(r.id)));
+        if (toSync.length > 0) {
+          console.log(`Syncing ${toSync.length} local requests to Supabase...`);
+          for (const r of toSync) {
+            const { error: e2 } = await supabaseClient.from('requests').upsert(requestToRow(r), { onConflict: 'id' });
+            if (e2) console.error('Sync failed for', r.id, e2.message);
+          }
+          // Reload after sync
+          const { data: data2 } = await supabaseClient.from('requests').select('*').order('id', { ascending: false });
+          if (data2) { requests = data2.map(rowToRequest); localStorage.setItem('requests', JSON.stringify(requests)); }
+        }
       } else {
+        console.error('Supabase load error:', error?.message);
         requests = JSON.parse(localStorage.getItem('requests')) || [];
       }
     } catch(e) {
+      console.error('Supabase load exception:', e);
       requests = JSON.parse(localStorage.getItem('requests')) || [];
     }
   } else {
