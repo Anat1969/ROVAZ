@@ -4,57 +4,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the App
 
-No build step required. The entire app is a single static HTML file (`app.html`).
+Static site, no build step. Entry point is `index.html` (`app.html` only redirects to it).
 
-To serve locally:
 ```
-npx http-server -p 8080
-# or
-python -m http.server 8080
+python3 -m http.server 8080
 ```
 
-The VSCode debug config (`.vscode/launch.json`) launches Chrome at `http://localhost:8080`.
+Deployed on Vercel from `main`. Merging a PR into `main` updates the live address.
 
 ## Architecture
 
-**Single-file SPA** — all HTML, CSS, and JS live in `app.html` (~2,500 lines). No framework, no bundler, no dependencies except Leaflet Maps (CDN).
+- `index.html` — markup: fixed top bar, landing page, app shell with all pages as hidden `.page` sections, modals.
+- `css/app.css` — Ashdod municipality design system (paper/ink, sea, dune, nahal, port), Rubik + IBM Plex Mono, motion layer, dark mode.
+- `js/app.js` — all application logic (roles, navigation, forms, requests, map, documents, reviewer auth).
+- `js/shell.js` — top bar (copy link, dev chat, install, theme), toasts, scroll reveal, service worker registration.
+- `manifest.webmanifest`, `sw.js`, `icons/` — installable PWA. `assets/logo-ashdod.png` — municipality logo (on white only).
+- `docs/plan-instructions.pdf` — plan instructions served as a static file and referenced from `rz_documents_content.files`.
 
-**Language:** Hebrew (RTL), targeting the Ashdod municipality. The app manages apartment expansion requests under Urban Plan #603-0595660 (Quarter Z / רובע ז').
+**Language:** Hebrew (RTL), Ashdod municipality. Manages apartment expansion requests under plan 603-0595660 (רובע ז').
+
+### Data — Supabase project ASHDODMAP (shared!)
+
+- Project `cbhexpybdggwzyakgagd` is shared with other apps. Every ROVAZ object uses the `rz_` prefix. Never touch other tables.
+- Tables: `rz_requests`, `rz_documents_content` (links, files, notes, page_content), `rz_settings` (reviewer hash, no client access).
+- RPCs: `rz_reviewer_password_set`, `rz_check_reviewer`, `rz_set_reviewer`, `rz_save_documents`. Schema in `supabase/rz_schema.sql`.
+- The old project ROVAZ-SUPABASE (`mahaeooagyattfavbajw`) was migrated in full on 2026-10-18 and can be deleted.
 
 ### Roles
 
-The app has two modes toggled via `switchRole()`:
+- Submitter (עורך בקשה) — enters by full name, no password.
+- City architect (אדריכלית העיר) — password checked server-side. Typing her name on the landing page opens the password modal; the name alone grants nothing.
 
-- **Submitter (מגיש)** — fills the expansion request form, uploads attachments, tracks status
-- **Reviewer / City Architect (מתכנן עיר)** — reviews all requests in a dashboard + map, approves/rejects, can edit page content inline
+### Routing
 
-### State & Persistence
+Hash routes `#/<pageId>` and `#/reviewerRequestDetail/<id>`; "העתקת קישור" copies the current state. The app name in the top bar goes home.
 
-- All requests stored in **`localStorage`** as JSON (including base64-encoded file attachments)
-- No backend — the app is entirely client-side
-- `loadRequests()` / `saveRequests()` are the persistence boundary
+## Conventions (from Anat)
 
-### Key JavaScript Functions
+- Hebrew UI, no icons, emoji or decorative arrows — words only.
+- Fixed top bar on every screen with logo, app name linking home, "העתקת קישור", "שיחת הפיתוח", install button.
+- After a green test, merge the PR into `main` without asking (standing approval).
 
-| Area | Functions |
-|------|-----------|
-| Navigation | `switchRole()`, `goToPage()`, `renderNavTabs()` |
-| Form & uploads | `submitRequest()`, `handleAttachmentSelect()`, `initializeImageUpload()` |
-| Request management | `loadRequests()`, `filterRequests()`, `viewRequestDetails()` |
-| Geocoding | `geocodeFullAddress()`, `resolveRequestLocation()`, `openLocationModal()` |
-| Map | `initializeMap()`, `updateMapMarkers()` |
-| Reviewer editing | `toggleReviewerEdit()`, `savePageEdits()`, `addComment()` |
-| Image viewer | `openImageFullscreen()`, `zoomViewer()`, `setupViewerEvents()` |
+## Testing
 
-### External Dependencies (CDN only)
-
-- **Leaflet 1.9.4** — interactive map
-- **OpenStreetMap Nominatim** — address geocoding (with disambiguation modal when multiple results match)
-
-## Code Layout in app.html
-
-| Lines | Content |
-|-------|---------|
-| 1–871 | `<style>` block — full CSS with RTL support and CSS variables |
-| 872–1328 | HTML markup — all views/pages as hidden `<div>` sections |
-| 1329–end | `<script>` block — all application logic |
+Playwright against `python3 -m http.server`, with routes mocking the Supabase REST/RPC endpoints and CDN files (the sandbox cannot reach supabase.co or the CDNs).

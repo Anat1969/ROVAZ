@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>רובע ז׳ — בקשות הרחבה | עיריית אשדוד</title>
+<meta name="description" content="הגשה ומעקב של בקשות הרחבת דירות לפי תוכנית רובע ז׳ 603-0595660, עיריית אשדוד">
+<meta name="theme-color" content="#133546">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="css/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<!-- TOP BAR: fixed on every screen -->
+<header class="topbar" id="topbar">
+  <a class="brand" href="./" onclick="return goHome(event)" aria-label="רובע ז׳ — דף הבית">
+    <img class="brand-logo" src="assets/logo-ashdod.png" alt="עיריית אשדוד">
+    <span class="brand-text">
+      <span class="brand-name">רובע ז׳ — בקשות הרחבה</span>
+      <span class="brand-sub">תוכנית 603-0595660</span>
+    </span>
+  </a>
+  <nav class="topbar-actions" aria-label="פעולות">
+    <span id="submitterGreeting" class="tb-user" style="display:none;"></span>
+    <button type="button" class="tb-btn tb-wide" onclick="copyCurrentLink()">העתקת קישור</button>
+    <a class="tb-btn tb-wide" id="devChatBtn" href="https://claude.ai/code/session_01YLMAnpwe58unooFbQSBMP5" target="_blank" rel="noopener">שיחת הפיתוח</a>
+    <button type="button" class="tb-btn tb-wide hidden" id="installBtn" onclick="installApp()">התקנת האפליקציה</button>
+    <button type="button" class="tb-btn tb-wide" id="themeBtn" onclick="toggleTheme()">מצב לילה</button>
+    <button type="button" id="submitterLogoutBtn" class="tb-btn hidden" onclick="goBackToLanding()">יציאה</button>
+    <button type="button" id="logoutBtn" class="tb-btn hidden" onclick="logoutReviewer()">יציאה</button>
+    <button type="button" class="tb-btn tb-more" id="moreBtn" onclick="toggleTopMenu(event)" aria-haspopup="true">תפריט</button>
+  </nav>
+</header>
+<div id="topMenu" class="tb-menu hidden" role="menu">
+  <button type="button" class="tb-btn" onclick="copyCurrentLink();toggleTopMenu()">העתקת קישור</button>
+  <a class="tb-btn" href="https://claude.ai/code/session_01YLMAnpwe58unooFbQSBMP5" target="_blank" rel="noopener">שיחת הפיתוח</a>
+  <button type="button" class="tb-btn hidden" id="installBtnMenu" onclick="installApp();toggleTopMenu()">התקנת האפליקציה</button>
+  <button type="button" class="tb-btn" onclick="toggleTheme();toggleTopMenu()">החלפת מצב תצוגה</button>
+</div>
+
+<div id="landingScreen">
+  <section class="hero">
+    <div class="hero-grain"></div>
+    <div class="hero-sails" aria-hidden="true">
+      <svg viewBox="0 0 520 420" preserveAspectRatio="xMinYMax meet">
+        <path class="sail s1" d="M40 420 C40 330 80 230 140 160 C128 250 128 340 140 420 Z" fill="#F3B220" opacity=".9"/>
+        <path class="sail s2" d="M130 420 C130 300 170 190 225 115 C210 225 210 330 225 420 Z" fill="#E8552A" opacity=".9"/>
+        <path class="sail s3" d="M218 420 C218 270 270 130 335 50 C315 185 315 310 333 420 Z" fill="#80B839" opacity=".9"/>
+        <path class="sail s4" d="M330 420 C335 300 372 180 422 120 C412 230 414 335 434 420 Z" fill="#31A7D9" opacity=".9"/>
+      </svg>
+    </div>
+    <svg class="hero-waves" viewBox="0 0 2880 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 60 Q180 20 360 60 T720 60 T1080 60 T1440 60 T1800 60 T2160 60 T2520 60 T2880 60 V120 H0Z" fill="#0E1A22"/>
+      <path d="M0 80 Q240 40 480 80 T960 80 T1440 80 T1920 80 T2400 80 T2880 80 V120 H0Z" fill="#31A7D9"/>
+    </svg>
+    <div class="hero-inner">
+      <div class="hero-kicker reveal-up">עיריית אשדוד · אדריכלות העיר · תוכנית 603-0595660</div>
+      <h1 class="hero-title reveal-up d1">הדירה שלך ברובע ז׳ <strong>יכולה לגדול</strong></h1>
+      <p class="hero-lead reveal-up d2">תוכנית רובע ז׳ מאפשרת לבעלי דירות להגדיל את הדירה עד 160 מ"ר, בלי הליך תכנוני ממושך. כאן מגישים בקשה, מצרפים תוכנית בינוי ועוקבים אחרי ההחלטה של אדריכלית העיר.</p>
+      <div class="hero-cta reveal-up d3">
+        <a class="btn btn-primary btn-lg" href="#login" onclick="scrollToLogin(event)">כניסה והגשת בקשה</a>
+        <a class="btn btn-ghost-light btn-lg" href="#how" onclick="scrollToId(event,'how')">איך זה עובד</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="landing-body">
+    <div class="figures sr" id="figures">
+      <div class="fig"><div class="fig-value"><span class="count" data-to="160">0</span><small>מ"ר</small></div><div class="fig-label">שטח דירה מרבי אחרי הרחבה</div><div class="fig-bar"><i style="background:var(--sea-500)"></i></div></div>
+      <div class="fig"><div class="fig-value"><span class="count" data-to="12">0</span><small>מ"ר</small></div><div class="fig-label">תוספת מרפסת</div><div class="fig-bar"><i style="background:var(--nahal-500)"></i></div></div>
+      <div class="fig"><div class="fig-value"><span class="count" data-to="5">0</span><small>מ"ר</small></div><div class="fig-label">תוספת סוכה</div><div class="fig-bar"><i style="background:var(--dune-500)"></i></div></div>
+      <div class="fig"><div class="fig-value"><span class="count" data-to="2034">0</span></div><div class="fig-label">התוכנית בתוקף עד נובמבר</div><div class="fig-bar"><i style="background:var(--port-500)"></i></div></div>
+    </div>
+
+    <div class="section-head sr"><span class="section-kicker">על התוכנית</span><h2 class="section-title">מהי תוכנית רובע ז׳</h2></div>
+    <div class="about-grid">
+      <div class="about-text sr">
+        <p>תוכנית בינוי עיר מס׳ 603-0595660 מאפשרת לבעלי דירות ברובע ז׳ באשדוד (Ashdod, Quarter Z) להגדיל את שטח הדירה עד <strong>160 מ"ר</strong>, בתוספת 12 מ"ר מרפסת ו-5 מ"ר סוכה.</p>
+        <p>ההרחבה מותנית בעמידה בתנאי התוכנית ובאישור אדריכלית העיר. הבקשה, המסמכים וההערות מתנהלים כאן, במקום אחד, עם מעקב בזמן אמת.</p>
+      </div>
+      <div class="about-quote sr">
+        <div class="q">הגשה אחת, מסמך אחד, החלטה אחת מנומקת.</div>
+        <div class="src">אדריכלות העיר · אשדוד</div>
+      </div>
+    </div>
+
+    <div class="section-head sr" id="how"><span class="section-kicker">חמישה שלבים</span><h2 class="section-title">איך זה עובד</h2></div>
+    <div class="timeline sr" id="timeline">
+      <div class="tl-step"><div class="tl-dot">1</div><strong>בדיקת זכאות</strong><span>בנייה רוויה, 4 יחידות ומעלה, ואכלוס לפני 11/2024.</span></div>
+      <div class="tl-step"><div class="tl-dot">2</div><strong>עיון במסמכים</strong><span>הוראות התוכנית, התשריט והדרישות הטכניות.</span></div>
+      <div class="tl-step"><div class="tl-dot">3</div><strong>צ׳ק ליסט</strong><span>מסמכים ואישורים מוכנים לפני ההגשה.</span></div>
+      <div class="tl-step"><div class="tl-dot">4</div><strong>הגשת בקשה</strong><span>טופס, תוכנית בינוי והדמיה, ישירות לאדריכלית העיר.</span></div>
+      <div class="tl-step"><div class="tl-dot">5</div><strong>מעקב והחלטה</strong><span>סטטוס, הערות וגרסאות מעודכנות, בזמן אמת.</span></div>
+    </div>
+
+    <div class="section-head sr" id="login"><span class="section-kicker">כניסה</span><h2 class="section-title">מתחילים כאן</h2></div>
+    <div class="login-wrap">
+      <div class="login-side sr">
+        <p>עורכי בקשות נכנסים בשם מלא. בכניסה הבאה השם יופיע ברשימה, וכל הבקשות שהגשתם יחכו בדף המעקב.</p>
+        <p style="margin-top:12px;">אדריכלית העיר נכנסת עם סיסמה אישית.</p>
+      </div>
+      <div class="landing-login-card sr">
+        <h2>כניסה למערכת</h2>
+        <div class="seg" id="loginSeg">
+          <span class="seg-thumb"></span>
+          <button type="button" id="tabExisting" class="on" onclick="showLoginTab('existing')">משתמש קיים</button>
+          <button type="button" id="tabNew" onclick="showLoginTab('new')">משתמש חדש</button>
+        </div>
+        <div id="loginExisting">
+          <select id="existingNameSelect" class="field" style="margin-bottom:10px;" aria-label="בחירת שם">
+            <option value="">בחרו שם</option>
+          </select>
+          <p id="landingErrorExisting" class="err-text">נא לבחור שם מהרשימה</p>
+          <button type="button" class="btn btn-primary btn-lg btn-block" onclick="landingEnterExisting()">כניסה</button>
+        </div>
+        <div id="loginNew" style="display:none;">
+          <div class="field-row">
+            <input type="text" id="landingFirstName" class="field" placeholder="שם פרטי" autocomplete="given-name"
+                   onkeydown="if(event.key==='Enter') document.getElementById('landingLastName').focus()">
+            <input type="text" id="landingLastName" class="field" placeholder="שם משפחה" autocomplete="family-name"
+                   onkeydown="if(event.key==='Enter') landingEnter()">
+          </div>
+          <p id="landingError" class="err-text">נא למלא שם פרטי ושם משפחה</p>
+          <button type="button" class="btn btn-primary btn-lg btn-block" onclick="landingEnter()">כניסה</button>
+        </div>
+        <p class="login-hint">אדריכלית העיר: <button type="button" class="link-btn" onclick="switchRole('reviewer')">כניסה עם סיסמה</button></p>
+        <datalist id="firstNameList"></datalist>
+        <datalist id="lastNameList"></datalist>
+      </div>
+    </div>
+
+    <div class="landing-footer">
+      <span>עיריית אשדוד · אדריכלות העיר</span>
+      <span class="mono">603-0595660 · רובע ז׳</span>
+    </div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
+<div class="container">
+
+<section class="app-hero">
+  <svg class="mini-sails" viewBox="0 0 520 420" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
+    <path class="sail s1" d="M40 420 C40 330 80 230 140 160 C128 250 128 340 140 420 Z" fill="#F3B220"/>
+    <path class="sail s2" d="M130 420 C130 300 170 190 225 115 C210 225 210 330 225 420 Z" fill="#E8552A"/>
+    <path class="sail s3" d="M218 420 C218 270 270 130 335 50 C315 185 315 310 333 420 Z" fill="#80B839"/>
+    <path class="sail s4" d="M330 420 C335 300 372 180 422 120 C412 230 414 335 434 420 Z" fill="#31A7D9"/>
+  </svg>
+  <div class="hero-row">
+    <div>
+      <h1 data-edit-key="headerTitle">מערכת ניהול בקשות — תוכנית רובע ז׳</h1>
+      <p data-edit-key="headerSubtitle">עיריית אשדוד | תוכנית 603-0595660 | תוספת שטחי בנייה לדירות קיימות</p>
+    </div>
+  </div>
+</section>
+
+<!-- ROLE SWITCH (reviewer only) -->
+<div id="roleSwitchBar" style="display:none;">
+  <div class="role-switch">
+    <label>תפקיד:</label>
+    <button id="roleSubmitter" onclick="switchRole('submitter')">עורך בקשה</button>
+    <button id="roleReviewer" class="active" onclick="switchRole('reviewer')">אדריכלית העיר</button>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-tabs" id="navTabs"></div>
+
+<!-- EDITOR TOOLBAR (reviewer only, floating) -->
+<div id="editorToolbar" class="editor-toolbar-bar hidden">
+  <strong style="font-size:13px;">עריכת תוכן:</strong>
+  <button class="btn btn-light btn-sm" id="toggleEditBtn" onclick="toggleReviewerEdit()">הפעל עריכה</button>
+  <button class="btn btn-success btn-sm hidden" id="saveEditsBtn" onclick="savePageEdits()">שמור שינויים</button>
+  <button class="btn btn-danger btn-sm hidden" id="cancelEditsBtn" onclick="cancelPageEdits()">בטל</button>
+  <span id="editModeHint" style="font-size:12px;">טקסטים ורשימות ניתנים לעריכה ישירות בדף.</span>
+</div>
+
+<!-- PAGES -->
+<div id="pagesContainer">
+
+  <!-- ===== HOME ===== -->
+  <div id="home" class="page">
+    <div class="card">
+      <h2 data-edit-key="homeTitle">מה עושים כאן</h2>
+      <div id="homeKpis"></div>
+      <div class="home-grid stagger" id="homeTiles"></div>
+    </div>
+  </div>
+
+  <!-- ===== DOCUMENTS (first) ===== -->
+  <div id="submitterDocuments" class="page">
+    <div class="card">
+      <h2>מסמכי התוכנית</h2>
+
+      <div class="docs-toolbar reviewer-only">
+        <button class="btn btn-primary btn-sm" onclick="showAddLinkForm()">הוספת קישור</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('docFileInput').click()">העלאת מסמך</button>
+        <input type="file" id="docFileInput" accept="*/*" multiple style="display:none" onchange="handleDocFileUpload(this.files)">
+      </div>
+
+      <!-- Add link form (hidden by default) -->
+      <div id="addLinkForm" class="add-link-form hidden">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>כותרת הקישור</label>
+          <input type="text" id="newLinkTitle" placeholder="למשל: תשריט התוכנית">
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>כתובת URL</label>
+          <input type="url" id="newLinkUrl" placeholder="https://...">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-success btn-sm" onclick="saveNewLink()">שמור קישור</button>
+          <button class="btn btn-light btn-sm" onclick="hideAddLinkForm()">ביטול</button>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="docs-section">
+        <h3>קישורים</h3>
+        <div id="docLinksList"></div>
+      </div>
+
+      <!-- Files -->
+      <div class="docs-section">
+        <h3>קבצים מצורפים</h3>
+        <div id="docFilesList"></div>
+      </div>
+
+      <!-- Notes -->
+      <div class="docs-section">
+        <h3>הערות</h3>
+        <div id="docNotesList"></div>
+        <div style="margin-top:10px;" class="reviewer-only">
+          <textarea id="docNewNoteText" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--line);font-family:inherit;font-size:15px;direction:rtl;" placeholder="הוסף הערה..."></textarea>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;" onclick="saveDocNote()">שמור הערה</button>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterInstructions')">חזרה להנחיות</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterChecklist')">המשך לצ׳ק ליסט</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INSTRUCTIONS ===== -->
+  <div id="submitterInstructions" class="page">
+    <div class="card">
+      <h2 data-edit-key="instructionsTitle">הנחיות הגשת בקשה</h2>
+      <div class="alert alert-info"><strong>חשוב:</strong> כל הבקשות להרחבת דירה ברובע ז׳ חייבות לעמוד בתנאים המפורטים בהוראות התוכנית.</div>
+      <div data-edit-key="submissionInstructions">
+        <h3 data-edit-key="submissionInstructionsTitle">שלבי הגשה:</h3>
+        <ol data-edit-list id="instructionsList" style="margin-right:20px;margin-bottom:14px;">
+          <li data-edit-key="instruction1" style="margin-bottom:6px;"><strong>בדקו זכאות:</strong> בנייה רוויה (4+ יחידות)? אישור אכלוס לפני 11/2024?</li>
+          <li data-edit-key="instruction2" style="margin-bottom:6px;"><strong>מדדו זכויות:</strong> מקסימום 160 מ"ר + 12 מ"ר מרפסת + 5 מ"ר סוכה.</li>
+          <li data-edit-key="instruction3" style="margin-bottom:6px;"><strong>תכננו הרחבה:</strong> עיצוב, קווי בניין, חומרי גמר.</li>
+          <li data-edit-key="instruction4" style="margin-bottom:6px;"><strong>הכינו תוכנית בינוי:</strong> מפת מדידה מעודכנת, גישה, חניה, פיתוח שטח.</li>
+          <li data-edit-key="instruction5" style="margin-bottom:6px;"><strong>הגישו בקשה:</strong> עם כל המסמכים הנדרשים.</li>
+        </ol>
+        <div class="alert alert-warning" data-edit-key="criticalHint"><strong>קווי בניין:</strong> 3 מ׳ לבנייה עד 4 קומות, 4 מ׳ מעל (לשכנים). חזית — 0 מ׳. שימו לב לעצים בוגרים.</div>
+        <h3>דרישות עיקריות:</h3>
+        <ul data-edit-list id="requirementsList" style="margin-right:20px;margin-bottom:14px;">
+          <li data-edit-key="req1" style="margin-bottom:5px;"><strong>תוכנית בינוי:</strong> אדריכלית, הנדסית, פיתוח שטח, גימור חזיתות</li>
+          <li data-edit-key="req2" style="margin-bottom:5px;"><strong>אישורים:</strong> עיר, מט"ש, איגוד ערים, פקיד יערות</li>
+          <li data-edit-key="req3" style="margin-bottom:5px;"><strong>תוקף:</strong> 10 שנים ממועד אישור (עד 11/2034)</li>
+        </ul>
+      </div>
+      <div style="margin-top:24px;background:var(--light-bg);border-radius:8px;padding:18px 20px;">
+        <h3 style="margin-bottom:12px;font-size:15px;">מדריך השימוש במערכת</h3>
+        <div style="display:grid;gap:10px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">1</span>
+            <div><strong>הנחיות</strong> (דף זה) — קראו את תנאי הזכאות, דרישות התוכנית וקווי הבניין לפני שמתחילים.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">2</span>
+            <div><strong>מסמכי התוכנית</strong> — עיינו בתשריטים, בהוראות ובקישורים הרשמיים שמעלה אדריכלית העיר.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">3</span>
+            <div><strong>צ׳ק ליסט</strong> — סמנו כל מסמך ואישור שמוכן. פריטים חסרים יסומנו לאדריכלית בסיכום הבקשה.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">4</span>
+            <div><strong>טופס הגשה</strong> — מלאו פרטים, צרפו תוכנית בינוי והדמייה, ושלחו לאדריכלית העיר.</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:white;border-radius:6px;border-right:3px solid var(--accent);">
+            <span style="font-weight:700;color:var(--accent);font-size:16px;min-width:24px;">5</span>
+            <div><strong>מעקב בקשה</strong> — ראו את סטטוס הבקשה, הערות אדריכלית העיר, ואפשרות לערוך ולשלוח גרסה מעודכנת.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;text-align:center;">
+        <button class="btn btn-primary" onclick="goToPage('submitterDocuments')">המשך למסמכי התוכנית</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div id="submitterForm" class="page">
+    <div class="card">
+      <h2 data-edit-key="formTitle">טופס הגשת בקשה</h2>
+
+      <div id="editingBanner" class="editing-form-banner hidden">
+                <span id="editingBannerText">עריכת בקשה קיימת — ההגשה תיצור גרסה חדשה</span>
+        <button class="btn btn-light btn-sm" style="margin-right:auto;" onclick="cancelEditing()">ביטול עריכה</button>
+      </div>
+
+      <div class="form-group">
+        <label>שם עורך/ת הבקשה</label>
+        <input type="text" id="submitterName" placeholder="שם מלא + תפקיד">
+      </div>
+
+      <div class="form-group">
+        <label>שם המבקש/ת</label>
+        <input type="text" id="applicantName" placeholder="שם בעל/ת הדירה">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>דוא"ל</label>
+          <input type="email" id="submitterEmail" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>טלפון</label>
+          <input type="tel" id="submitterPhone" placeholder="05X-XXXXXXX">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>רחוב</label>
+          <input type="text" id="propertyStreet" placeholder="שם הרחוב">
+        </div>
+        <div class="form-group">
+          <label>מספר בניין</label>
+          <input type="text" id="propertyBuildingNumber" placeholder="מספר">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>גוש</label>
+          <input type="text" id="gushNumber" placeholder="מספר גוש">
+        </div>
+        <div class="form-group">
+          <label>חלקה</label>
+          <input type="text" id="helkaNumber" placeholder="מספר חלקה">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>תיאור הבקשה</label>
+        <textarea id="expansionDescription" placeholder="תוספת בנייה, סוג התוספת, קומה, דירה, שטח מבוקש..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>תוכנית בינוי</label>
+        <div class="upload-zone" id="planUpload" onclick="triggerUpload('planInput', event)">
+          <div class="zone-prompt">
+            <p>גררו קובץ או לחצו להעלאה</p>
+            <small>תמונה, PDF, DWG, Word, Excel ועוד</small>
+          </div>
+          <div class="zone-content" id="planContent" style="display:none;"></div>
+          <input type="file" id="planInput" accept="*/*" style="display:none" onchange="handleAttachmentSelect(this.files[0],'plan')">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הדמייה עיצובית</label>
+        <div class="upload-zone" id="visualizationUpload" onclick="triggerUpload('visualizationInput', event)">
+          <div class="zone-prompt">
+            <p>גררו קובץ או לחצו להעלאה</p>
+            <small>תמונה, PDF, DWG ועוד</small>
+          </div>
+          <div class="zone-content" id="visualizationContent" style="display:none;"></div>
+          <input type="file" id="visualizationInput" accept="*/*" style="display:none" onchange="handleAttachmentSelect(this.files[0],'visualization')">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>הערות נוספות</label>
+        <textarea id="additionalNotes" placeholder="כל מידע חשוב"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterChecklist')">חזרה לצ׳ק ליסט</button>
+        <button class="btn btn-primary" onclick="submitRequest()">שליחת הבקשה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHECKLIST ===== -->
+  <div id="submitterChecklist" class="page">
+    <div class="card">
+      <h2>צ׳ק ליסט — בדיקת עמידה בדרישות</h2>
+      <div class="alert alert-info">סמנו את הפריטים שמולאו. ניתן להמשיך גם אם לא הכל מולא — פריטים חסרים יתועדו בסיכום.</div>
+
+      <h3 data-edit-key="basicRequirementsTitle">דרישות בסיסיות</h3>
+      <ul class="checklist" id="basicChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check1">
+          <div class="item-row"><input type="checkbox" id="check1"><label for="check1">הדירה בבנייה רוויה (4+ יחידות, לפחות 2 קומות)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check1" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check2">
+          <div class="item-row"><input type="checkbox" id="check2"><label for="check2">הדירה קיבלה אישור אכלוס לפני 05/11/2024</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check2" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check3">
+          <div class="item-row"><input type="checkbox" id="check3"><label for="check3">השטח המבוקש לא עולה על 160 מ"ר (+ 12 מרפסת + 5 סוכה)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check3" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <h3 data-edit-key="documentRequirementsTitle">מסמכים נדרשים</h3>
+      <ul class="checklist" id="documentChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check4">
+          <div class="item-row"><input type="checkbox" id="check4"><label for="check4">תוכנית בינוי (אדריכלית, הנדסית, פיתוח)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check4" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check5">
+          <div class="item-row"><input type="checkbox" id="check5"><label for="check5">מפת מדידה מעודכנת של הנכס</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check5" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check6">
+          <div class="item-row"><input type="checkbox" id="check6"><label for="check6">חומרי גמר וצבע חזית</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check6" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check7">
+          <div class="item-row"><input type="checkbox" id="check7"><label for="check7">דרכי גישה וחניה (אם מושפע)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check7" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check8">
+          <div class="item-row"><input type="checkbox" id="check8"><label for="check8">הערכת השפעה על עצים בוגרים (אם קיימים)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check8" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <h3 data-edit-key="approvalsTitle">אישורים נדרשים</h3>
+      <ul class="checklist" id="approvalsChecklist" data-edit-list>
+        <li class="checklist-item" data-check-id="check9">
+          <div class="item-row"><input type="checkbox" id="check9"><label for="check9">אישור מט"ש אשדוד (יכולת ביוב)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check9" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check10">
+          <div class="item-row"><input type="checkbox" id="check10"><label for="check10">אישור איגוד ערים לאיכות הסביבה</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check10" placeholder="הערה...">
+        </li>
+        <li class="checklist-item" data-check-id="check11">
+          <div class="item-row"><input type="checkbox" id="check11"><label for="check11">אישור פקיד יערות (אם יש עצים בוגרים)</label></div>
+          <input type="text" class="checklist-note-input" data-note-for="check11" placeholder="הערה...">
+        </li>
+      </ul>
+
+      <div style="margin-top:16px;">
+        <div class="progress-bar"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+        <p id="progressText" style="font-size:12px;color:var(--text-light);">0 / 11 פריטים</p>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-light" onclick="goToPage('submitterDocuments')">חזרה למסמכים</button>
+        <button class="btn btn-primary" onclick="goToPage('submitterForm')">המשך לטופס ההגשה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRACKER ===== -->
+  <div id="submitterTracker" class="page">
+    <div class="card">
+      <h2>מעקב אחר הבקשה שלך</h2>
+      <div id="submissionSuccess" class="success-banner hidden"></div>
+      <!-- Phone identification gate (shown if not logged in) -->
+      <div id="phoneGate" class="hidden">
+        <div style="text-align:center;padding:30px 20px;">
+          <p style="font-size:16px;margin-bottom:16px;">כדי לראות את הבקשות שלך, יש להיכנס בשם מלא.</p>
+          <button class="btn btn-primary" onclick="goBackToLanding();scrollToLogin()">כניסה בשם מלא</button>
+        </div>
+      </div>
+      <div id="trackerContent">
+        <p style="color:var(--text-light);text-align:center;padding:20px 0;">אין בקשות פעילות עדיין.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEWER DASHBOARD ===== -->
+  <div id="reviewerDashboard" class="page">
+    <div class="card">
+      <h2 data-edit-key="reviewerDashboardTitle">רשימת כל הבקשות</h2>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input type="text" id="searchInput" placeholder="חיפוש לפי כתובת או שם עורך" style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;">
+        <select id="filterStatus" onchange="filterRequests()" style="padding:8px 11px;border:1px solid var(--border);border-radius:4px;font-size:13px;">
+          <option value="">כל הסטטוסים</option>
+          <option value="pending">ממתינה</option>
+          <option value="approved">אושרה</option>
+          <option value="rejected">דחויה</option>
+        </select>
+        <button id="toggleVersionsBtn" class="btn btn-light btn-sm" onclick="toggleVersionsView()">הצג גרסאות קודמות</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="requestsTable">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort-key="number" onclick="setTableSort('number')">#</th>
+              <th class="sortable" data-sort-key="address" onclick="setTableSort('address')">כתובת</th>
+              <th class="sortable" data-sort-key="submitterName" onclick="setTableSort('submitterName')">עורך בקשה</th>
+              <th class="sortable" data-sort-key="applicantName" onclick="setTableSort('applicantName')">מבקש</th>
+              <th class="sortable" data-sort-key="status" onclick="setTableSort('status')">סטטוס</th>
+              <th class="sortable" data-sort-key="createdAt" onclick="setTableSort('createdAt')">תאריך</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="requestsBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px;">אין בקשות עדיין</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="editor-panel">
+        <h3 style="margin-top:0;">עורכי בקשות</h3>
+        <div id="requestEditorsList" class="editor-list">
+          <div style="color:var(--text-light);font-size:13px;">אין עורכים עדיין.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAP ===== -->
+  <div id="reviewerMap" class="page">
+    <div class="card">
+      <h2 data-edit-key="reviewerMapTitle">מפת בקשות — אשדוד, רובע ז׳</h2>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:12px;" data-edit-key="reviewerMapNote">לחצו על סימן למידע על הבקשה. ירוק=אושר, כתום=ממתין, אדום=נדחה.</p>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEWER DETAIL PAGE ===== -->
+  <div id="reviewerRequestDetail" class="page">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <button class="btn btn-light btn-sm" onclick="goToPage('reviewerDashboard')">רשימת בקשות</button>
+        <h2 style="margin:0;border:none;padding:0;" id="detailPageTitle">פרטי בקשה</h2>
+      </div>
+      <div id="detailPageContent"></div>
+    </div>
+  </div>
+
+</div><!-- /pagesContainer -->
+
+<footer>
+  <p>עיריית אשדוד | מערכת ניהול בקשות תוכנית רובע ז׳ | 603-0595660</p>
+</footer>
+</div><!-- /container -->
+</div><!-- /appShell -->
+<div id="dbStatusBadge" class="db-status local">שמירה מקומית</div>
+<div id="toastHost" aria-live="polite"></div>
+
+<!-- LOCATION MODAL -->
+<div id="locationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>אישור מיקום כתובת</h2>
+      <button class="modal-close" onclick="closeLocationModal()">סגירה</button>
+    </div>
+    <div id="locationModalBody" style="padding:4px 0;"></div>
+  </div>
+</div>
+
+<!-- EMAIL PREVIEW MODAL -->
+<div id="emailPreviewModal" class="modal">
+  <div class="modal-content" style="max-width:660px;">
+    <div class="modal-header">
+      <h2>תצוגה מקדימה של מייל</h2>
+      <button class="modal-close" onclick="closeEmailPreview()">סגירה</button>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--text-light);">
+      <strong>אל:</strong> <span id="previewEmailTo"></span>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--text-light);">
+      <strong>נושא:</strong> <span id="previewEmailSubject"></span>
+    </div>
+    <textarea id="previewEmailBody" style="width:100%;min-height:220px;padding:12px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="sendPreviewedEmail()">שלח מייל</button>
+      <button class="btn btn-light" onclick="closeEmailPreview()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEWER PASSWORD MODAL -->
+<div id="reviewerPasswordModal" class="modal">
+  <div class="modal-content" style="max-width:360px;">
+    <div class="modal-header">
+      <h2>כניסה — אדריכלית העיר</h2>
+      <button class="modal-close" onclick="closeReviewerPasswordModal()">סגירה</button>
+    </div>
+    <!-- First-time setup -->
+    <div id="reviewerSetupSection" style="display:none;">
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">בפעם הראשונה — הגדירי סיסמה אישית לכניסה:</p>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>סיסמה חדשה</label>
+        <input type="password" id="reviewerNewPwd" placeholder="בחרי סיסמה"
+               autocomplete="new-password"
+               onkeydown="if(event.key==='Enter') document.getElementById('reviewerNewPwd2').focus()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>אימות סיסמה</label>
+        <input type="password" id="reviewerNewPwd2" placeholder="הזיני שוב"
+               autocomplete="new-password"
+               onkeydown="if(event.key==='Enter') setReviewerPassword()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <p id="reviewerSetupError" class="err-text"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="setReviewerPassword()">הגדר סיסמה וכנסי</button>
+        <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+      </div>
+    </div>
+    <!-- Normal login -->
+    <div id="reviewerLoginSection">
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>סיסמה</label>
+        <input type="password" id="reviewerPasswordInput" placeholder="הזיני סיסמה"
+               autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') verifyReviewerPassword()"
+               style="direction:ltr;letter-spacing:2px;">
+      </div>
+      <p id="reviewerPasswordError" class="err-text">סיסמה שגויה — נסי שוב</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="verifyReviewerPassword()">כניסה</button>
+        <button class="btn btn-light" onclick="closeReviewerPasswordModal()">ביטול</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER -->
+<div id="imageViewerModal" class="full-screen-modal" onclick="closeImageViewer(event)">
+  <div class="viewer-card" onclick="event.stopPropagation()">
+    <button class="viewer-close" onclick="closeImageViewer(event)">סגירה</button>
+    <div class="viewer-actions">
+      <button onclick="zoomViewer(1.25)">הגדלה</button>
+      <button onclick="zoomViewer(0.8)">הקטנה</button>
+      <button onclick="resetViewer()">איפוס</button>
+    </div>
+    <div class="viewer-image-wrapper">
+      <img id="viewerImage" class="viewer-image" src="" alt="תצוגה מלאה">
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+</body>
+</html>
