@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
+<script src="https://appofapp-gh.vercel.app/ai-menu.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -29,21 +30,9 @@
   </a>
   <nav class="topbar-actions" aria-label="פעולות">
     <span id="submitterGreeting" class="tb-user" style="display:none;"></span>
-    <button type="button" class="tb-btn tb-wide" onclick="copyCurrentLink()">העתקת קישור</button>
-    <a class="tb-btn tb-wide" id="devChatBtn" href="https://claude.ai/code/session_01YLMAnpwe58unooFbQSBMP5" target="_blank" rel="noopener">שיחת הפיתוח</a>
-    <button type="button" class="tb-btn tb-wide hidden" id="installBtn" onclick="installApp()">התקנת האפליקציה</button>
-    <button type="button" class="tb-btn tb-wide" id="themeBtn" onclick="toggleTheme()">מצב לילה</button>
-    <button type="button" id="submitterLogoutBtn" class="tb-btn hidden" onclick="goBackToLanding()">יציאה</button>
-    <button type="button" id="logoutBtn" class="tb-btn hidden" onclick="logoutReviewer()">יציאה</button>
-    <button type="button" class="tb-btn tb-more" id="moreBtn" onclick="toggleTopMenu(event)" aria-haspopup="true">תפריט</button>
+    <ai-menu chat="https://claude.ai/code/session_01YLMAnpwe58unooFbQSBMP5"></ai-menu>
   </nav>
 </header>
-<div id="topMenu" class="tb-menu hidden" role="menu">
-  <button type="button" class="tb-btn" onclick="copyCurrentLink();toggleTopMenu()">העתקת קישור</button>
-  <a class="tb-btn" href="https://claude.ai/code/session_01YLMAnpwe58unooFbQSBMP5" target="_blank" rel="noopener">שיחת הפיתוח</a>
-  <button type="button" class="tb-btn hidden" id="installBtnMenu" onclick="installApp();toggleTopMenu()">התקנת האפליקציה</button>
-  <button type="button" class="tb-btn" onclick="toggleTheme();toggleTopMenu()">החלפת מצב תצוגה</button>
-</div>
 
 <div id="landingScreen">
   <section class="hero">
@@ -173,14 +162,6 @@
 <!-- NAVIGATION -->
 <div class="nav-tabs" id="navTabs"></div>
 
-<!-- EDITOR TOOLBAR (reviewer only, floating) -->
-<div id="editorToolbar" class="editor-toolbar-bar hidden">
-  <strong style="font-size:13px;">עריכת תוכן:</strong>
-  <button class="btn btn-light btn-sm" id="toggleEditBtn" onclick="toggleReviewerEdit()">הפעל עריכה</button>
-  <button class="btn btn-success btn-sm hidden" id="saveEditsBtn" onclick="savePageEdits()">שמור שינויים</button>
-  <button class="btn btn-danger btn-sm hidden" id="cancelEditsBtn" onclick="cancelPageEdits()">בטל</button>
-  <span id="editModeHint" style="font-size:12px;">טקסטים ורשימות ניתנים לעריכה ישירות בדף.</span>
-</div>
 
 <!-- PAGES -->
 <div id="pagesContainer">
