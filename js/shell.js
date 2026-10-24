@@ -42,14 +42,26 @@ async function copyCurrentLink() {
   }
 }
 
-function toggleTopMenu(e) {
-  if (e) e.stopPropagation();
-  document.getElementById('topMenu').classList.toggle('hidden');
+// A&I logo button (<ai-menu>): copy link, dev chat and install are built in;
+// the app adds editing, theme and sign-out here.
+function syncAIMenu() {
+  const menu = document.querySelector('ai-menu');
+  if (!menu) return;
+  const items = [];
+  const inApp = isInApp();
+  if (inApp && currentRole === 'reviewer') {
+    items.push({ label: editMode ? 'סגור עריכה' : 'הפעל עריכה', hint: 'עריכת תוכן', pressed: editMode, onSelect: toggleReviewerEdit });
+    if (editMode) {
+      items.push({ label: 'שמור שינויים', onSelect: savePageEdits });
+      items.push({ label: 'ביטול שינויים', onSelect: cancelPageEdits });
+    }
+  }
+  items.push({ label: currentTheme() === 'dark' ? 'מצב יום' : 'מצב לילה', onSelect: toggleTheme });
+  if (inApp && currentRole === 'reviewer') items.push({ label: 'יציאה', hint: 'אדריכלית העיר', onSelect: logoutReviewer });
+  else if (inApp && submitterIdentityName) items.push({ label: 'יציאה', onSelect: goBackToLanding });
+  menu.items = items;
+  menu.status = editMode && currentRole === 'reviewer' ? 'עריכה פעילה' : '';
 }
-document.addEventListener('click', e => {
-  const menu = document.getElementById('topMenu');
-  if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target)) menu.classList.add('hidden');
-});
 
 // Theme: follows the system unless the viewer picked one
 function currentTheme() {
@@ -58,8 +70,7 @@ function currentTheme() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 function applyThemeLabel() {
-  const btn = document.getElementById('themeBtn');
-  if (btn) btn.textContent = currentTheme() === 'dark' ? 'מצב יום' : 'מצב לילה';
+  syncAIMenu();
 }
 function toggleTheme() {
   const next = currentTheme() === 'dark' ? 'light' : 'dark';
@@ -70,24 +81,7 @@ function toggleTheme() {
 try { const t = localStorage.getItem('rz-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
 applyThemeLabel();
 
-// Install from Chrome
-let deferredInstall = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstall = e;
-  ['installBtn', 'installBtnMenu'].forEach(id => document.getElementById(id).classList.remove('hidden'));
-});
-window.addEventListener('appinstalled', () => {
-  deferredInstall = null;
-  ['installBtn', 'installBtnMenu'].forEach(id => document.getElementById(id).classList.add('hidden'));
-  toast('האפליקציה הותקנה');
-});
-async function installApp() {
-  if (!deferredInstall) { toast('אפשר להתקין מתפריט Chrome: התקנת האפליקציה'); return; }
-  deferredInstall.prompt();
-  await deferredInstall.userChoice;
-  deferredInstall = null;
-}
+// Install from Chrome: handled by the A&I logo button (<ai-menu>).
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }

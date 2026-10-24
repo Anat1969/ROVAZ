@@ -128,20 +128,17 @@ function switchRole(role) {
 
 function updateSubmitterGreeting() {
   const greeting = document.getElementById('submitterGreeting');
-  const logoutBtn = document.getElementById('submitterLogoutBtn');
   const inApp = isInApp();
   if (inApp && currentRole === 'reviewer' && sessionStorage.getItem('reviewerAuth') === '1') {
     greeting.textContent = 'אדריכלית העיר';
     greeting.style.display = '';
-    logoutBtn.classList.add('hidden');
   } else if (inApp && submitterIdentityName && currentRole === 'submitter') {
     greeting.textContent = `שלום, ${submitterIdentityName}`;
     greeting.style.display = '';
-    logoutBtn.classList.remove('hidden');
   } else {
     greeting.style.display = 'none';
-    logoutBtn.classList.add('hidden');
   }
+  syncAIMenu();
 }
 
 function _doSwitchRole(role) {
@@ -153,10 +150,6 @@ function _doSwitchRole(role) {
   const rRev = document.getElementById('roleReviewer');
   if (rSub) rSub.classList.toggle('active', role === 'submitter');
   if (rRev) rRev.classList.toggle('active', role === 'reviewer');
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) logoutBtn.classList.toggle('hidden', role !== 'reviewer');
-  const subLogoutBtn = document.getElementById('submitterLogoutBtn');
-  if (subLogoutBtn) subLogoutBtn.classList.toggle('hidden', role !== 'submitter');
   updateSubmitterGreeting();
   renderNavTabs();
   goToPage(role === 'submitter' ? 'submitterTracker' : 'reviewerDashboard');
@@ -190,12 +183,7 @@ function renderNavTabs() {
   ).join('');
   requestAnimationFrame(moveNavIndicator);
 
-  const toolbar = document.getElementById('editorToolbar');
-  if (currentRole === 'reviewer') toolbar.classList.remove('hidden');
-  else toolbar.classList.add('hidden');
-  document.getElementById('toggleEditBtn').textContent = editMode ? 'סגור עריכה' : 'הפעל עריכה';
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) logoutBtn.classList.toggle('hidden', currentRole !== 'reviewer');
+  syncAIMenu();
 }
 
 function moveNavIndicator() {
@@ -320,9 +308,7 @@ function toggleReviewerEdit() {
   if (!editMode) {
     editMode = true;
     document.body.classList.add('editable-active');
-    document.getElementById('saveEditsBtn').classList.remove('hidden');
-    document.getElementById('cancelEditsBtn').classList.remove('hidden');
-    document.getElementById('toggleEditBtn').textContent = 'סגור עריכה';
+    syncAIMenu();
     document.querySelectorAll('[data-editable]').forEach(el => el.setAttribute('contenteditable', 'true'));
     document.querySelectorAll('[data-edit-list]').forEach(renderEditableListControls);
   } else {
@@ -338,9 +324,7 @@ function savePageEdits() {
   saveDocumentsToSupabase({ pageContent: true });
   editMode = false;
   document.body.classList.remove('editable-active');
-  document.getElementById('saveEditsBtn').classList.add('hidden');
-  document.getElementById('cancelEditsBtn').classList.add('hidden');
-  document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
+  syncAIMenu();
   document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
   document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
 }
@@ -348,9 +332,7 @@ function savePageEdits() {
 function cancelPageEdits() {
   editMode = false;
   document.body.classList.remove('editable-active');
-  document.getElementById('saveEditsBtn').classList.add('hidden');
-  document.getElementById('cancelEditsBtn').classList.add('hidden');
-  document.getElementById('toggleEditBtn').textContent = 'הפעל עריכה';
+  syncAIMenu();
   loadPersistentPageContent();
   document.querySelectorAll('.editable-list-controls').forEach(el => el.remove());
   document.querySelectorAll('[data-editable]').forEach(el => el.removeAttribute('contenteditable'));
@@ -1790,8 +1772,6 @@ function goBackToLanding() {
   currentRole = 'submitter';
   applyRoleClass();
   updateSubmitterGreeting();
-  ['logoutBtn','submitterLogoutBtn'].forEach(id => document.getElementById(id).classList.add('hidden'));
-  document.getElementById('editorToolbar').classList.add('hidden');
   history.replaceState(null, '', location.pathname);
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('landingScreen').style.display = '';

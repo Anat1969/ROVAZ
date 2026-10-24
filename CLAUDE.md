@@ -17,7 +17,7 @@ Deployed on Vercel from `main`. Merging a PR into `main` updates the live addres
 - `index.html` — markup: fixed top bar, landing page, app shell with all pages as hidden `.page` sections, modals.
 - `css/app.css` — Ashdod municipality design system (paper/ink, sea, dune, nahal, port), Rubik + IBM Plex Mono, motion layer, dark mode.
 - `js/app.js` — all application logic (roles, navigation, forms, requests, map, documents, reviewer auth).
-- `js/shell.js` — top bar (copy link, dev chat, install, theme), toasts, scroll reveal, service worker registration.
+- `js/shell.js` — top bar: the A&I logo button items (`syncAIMenu`: content editing for the city architect, theme, sign-out), toasts, scroll reveal, service worker registration.
 - `manifest.webmanifest`, `sw.js`, `icons/` — installable PWA. `assets/logo-ashdod.png` — municipality logo (on white only).
 - `docs/plan-instructions.pdf` — plan instructions served as a static file and referenced from `rz_documents_content.files`.
 
@@ -42,9 +42,12 @@ Hash routes `#/<pageId>` and `#/reviewerRequestDetail/<id>`; "העתקת קיש�
 ## Conventions (from Anat)
 
 - Hebrew UI, no icons, emoji or decorative arrows — words only.
-- Fixed top bar on every screen with logo, app name linking home, "העתקת קישור", "שיחת הפיתוח", install button.
+- Fixed top bar on every screen with logo, app name linking home, and the A&I logo button (`<ai-menu>`): "העתקת קישור", "שיחת הפיתוח", install, content editing, theme and sign-out live inside it. No floating editor toolbar.
 - After a green test, merge the PR into `main` without asking (standing approval).
 
 ## Testing
 
 Playwright against `python3 -m http.server`, with routes mocking the Supabase REST/RPC endpoints and CDN files (the sandbox cannot reach supabase.co or the CDNs).
+
+## A&I logo button
+The top bar holds only the app name (links home), content navigation, and ONE logo button "אד' ענת שטיבלמן A&I" (`<ai-menu>` from https://appofapp-gh.vercel.app/ai-menu.js). Every editing and development action (העתקת קישור, שיחת הפיתוח, פרויקט המחקר, התקנת האפליקציה, edit mode, add, delete) lives only inside it, never as loose buttons. Standard: https://github.com/Anat1969/AppOfApp-GH/blob/main/docs/ai-menu-standard.md
