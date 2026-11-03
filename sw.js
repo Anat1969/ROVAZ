@@ -1,6 +1,6 @@
 // Pages and data from the network; static assets from the cache
-const CACHE = 'rovaz-v1';
-const ASSETS = ['css/app.css', 'js/app.js', 'js/shell.js', 'assets/logo-ashdod.png', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'rovaz-v2';
+const ASSETS = ['css/app.css', 'js/app.js', 'js/shell.js', 'js/grow.js', 'css/grow.css', 'assets/logo-ashdod.png', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

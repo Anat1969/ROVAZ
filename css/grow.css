@@ -1,0 +1,125 @@
+/* "הבית שגדל": axonometric view of plan 603-0595660. One motif: the added volume. */
+.grow-card h2 + .grow-lead{margin-top:-6px;}
+.grow-lead{font-size:15px;color:var(--ink-muted);margin-bottom:18px;max-width:68ch;}
+.grow-lead strong{display:block;font-size:19px;font-weight:600;color:var(--ink);}
+.grow{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px;align-items:start;}
+.grow.grow-compact{display:block;}
+.grow-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:20px;align-items:start;}
+.grow-pair .grow-compact{grid-column:2;grid-row:1;position:sticky;top:calc(var(--topbar-h) + 72px);}
+.grow-pair #basicChecklist{grid-column:1;grid-row:1;}
+.grow-compact .grow-legend{gap:4px 10px;}
+.grow-stage{min-width:0;}
+
+.gc-label,.gr-label,.grow-legend li{font-size:12px;font-weight:500;color:var(--ink-muted);}
+.gv-end{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);}
+.grow-controls{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-bottom:8px;}
+.grow-seg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.grow-seg .gc-label{margin-inline-end:4px;}
+
+/* chips and rule buttons: square, no visible frame, read as buttons by fill, shadow, lift and press */
+.grow-chip,.grow-rule{border:1px solid transparent;border-radius:0;cursor:pointer;font-family:var(--font-sans);color:var(--ink);background:var(--sand);box-shadow:var(--shadow-1);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s,color .18s;}
+.grow-chip{padding:6px 12px;font-size:13px;font-weight:500;min-width:104px;}
+.grow-chip:hover,.grow-rule:hover{transform:translateY(-1px);box-shadow:var(--shadow-2);}
+.grow-chip:active,.grow-rule:active{transform:translateY(1px);box-shadow:none;}
+.grow-chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+
+.grow-range{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.grow-range input{width:150px;accent-color:var(--nahal-700);}
+.gc-out{font:600 15px var(--font-sans);min-width:64px;}
+
+.grow-svg{display:block;width:100%;height:auto;max-height:66vh;overflow:visible;}
+.grow-compact .grow-svg{max-height:320px;}
+
+/* materials: top face lightest, +x mid, +y darkest (light from the top right) */
+.grow-svg polygon,.grow-svg line{vector-effect:non-scaling-stroke;transition:opacity .2s var(--ease);}
+.grow-svg .street{fill:color-mix(in srgb,var(--ink) 7%,var(--raised));stroke:none;}
+.grow-svg .plot{fill:color-mix(in srgb,var(--ink) 3%,var(--raised));stroke:var(--line);stroke-width:1;stroke-dasharray:5 4;}
+.grow-svg .neigh{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:3 3;}
+.m-exist polygon{stroke:color-mix(in srgb,var(--ink) 55%,transparent);stroke-width:1;stroke-linejoin:round;}
+.m-exist .ft{fill:var(--raised);} .m-exist .fx{fill:color-mix(in srgb,var(--ink) 9%,var(--raised));} .m-exist .fy{fill:color-mix(in srgb,var(--ink) 17%,var(--raised));}
+.m-pil polygon{stroke:color-mix(in srgb,var(--ink) 35%,transparent);stroke-width:1;}
+.m-pil .ft{fill:color-mix(in srgb,var(--ink) 20%,var(--raised));} .m-pil .fx,.m-pil .fy{fill:color-mix(in srgb,var(--ink) 28%,var(--raised));}
+.grow-svg .win{fill:color-mix(in srgb,var(--sea-700) 45%,var(--raised));stroke:none;}
+.grow-svg .floorline{stroke:color-mix(in srgb,var(--ink) 30%,transparent);stroke-width:1;}
+.m-add polygon{stroke:var(--nahal-700);stroke-width:1.4;stroke-linejoin:round;}
+.m-add .ft{fill:color-mix(in srgb,var(--nahal-500) 30%,transparent);} .m-add .fx{fill:color-mix(in srgb,var(--nahal-500) 42%,transparent);} .m-add .fy{fill:color-mix(in srgb,var(--nahal-500) 55%,transparent);}
+.m-roof polygon{stroke:var(--nahal-700);stroke-width:1.2;stroke-dasharray:4 3;}
+.m-roof .ft{fill:color-mix(in srgb,var(--nahal-500) 18%,transparent);} .m-roof .fx,.m-roof .fy{fill:color-mix(in srgb,var(--nahal-500) 28%,transparent);}
+.m-bal polygon{stroke:var(--estuary-700);stroke-width:1;fill:color-mix(in srgb,var(--estuary-500) 55%,var(--raised));}
+.grow-svg .rail{fill:color-mix(in srgb,var(--estuary-500) 22%,transparent);stroke:var(--estuary-700);stroke-width:1;}
+.grow-svg .plane{fill:color-mix(in srgb,var(--port-500) 9%,transparent);stroke:var(--port-700);stroke-width:1.2;stroke-dasharray:6 4;}
+.grow-svg .plane-front{fill:color-mix(in srgb,var(--sea-500) 8%,transparent);stroke:var(--sea-700);}
+.grow-svg .dim{stroke:var(--port-700);stroke-width:1.2;}
+
+.grow-svg .gl{font:500 1.55px var(--font-sans);fill:var(--ink);paint-order:stroke;stroke:var(--raised);stroke-width:.45px;stroke-linejoin:round;transition:opacity .2s var(--ease);}
+.grow-svg .gn{font-weight:700;}
+.grow-svg .gl-quiet{fill:var(--ink-muted);font-weight:400;}
+.grow-svg .gl-dim{fill:var(--port-700);}
+.grow-svg .gl-add{fill:var(--nahal-700);font-size:1.75px;}
+.grow-svg .gl-bal{fill:var(--estuary-700);}
+.grow-svg .gl-on-face{font-size:1.3px;}
+.grow-svg .gl-step{font-size:1.25px;fill:var(--nahal-700);opacity:0;}
+
+/* highlight: the governed part stays, the rest steps back */
+.grow.has-active .grow-svg [data-part]:not(.on){opacity:.14;}
+.grow.has-active .grow-valid:not(.on){opacity:.35;}
+.grow.has-active .grow-svg .on polygon,.grow.has-active .grow-svg polygon.on{stroke-width:2.2;}
+.grow[data-active~="column"] .gl-step{opacity:1;}
+.grow-valid.on{background:var(--dune-100);}
+
+.grow-add{margin:6px 0 10px;font-size:15px;}
+.grow-add strong{font-size:18px;}
+.grow-add span,.gv-text span{font-size:13px;color:var(--ink-muted);}
+
+.grow-legend{list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0 12px;padding:0;}
+.grow-legend li{display:flex;align-items:center;gap:6px;}
+.lg{display:inline-block;width:14px;height:10px;}
+.lg-exist{background:color-mix(in srgb,var(--ink) 17%,var(--raised));outline:1px solid color-mix(in srgb,var(--ink) 55%,transparent);}
+.lg-add{background:color-mix(in srgb,var(--nahal-500) 50%,transparent);outline:1px solid var(--nahal-700);}
+.lg-bal{background:color-mix(in srgb,var(--estuary-500) 55%,var(--raised));outline:1px solid var(--estuary-700);}
+.lg-plane{background:color-mix(in srgb,var(--port-500) 12%,transparent);outline:1px dashed var(--port-700);}
+
+.grow-valid{padding:10px 12px;background:var(--sand);transition:background .2s,opacity .2s;}
+.gv-bar{position:relative;height:8px;background:color-mix(in srgb,var(--dune-500) 25%,var(--raised));}
+.gv-used{position:absolute;inset-block:0;inset-inline-start:0;background:var(--dune-500);}
+.gv-now{position:absolute;top:-4px;width:2px;height:16px;background:var(--ink);}
+.gv-ends{display:flex;justify-content:space-between;margin-top:4px;}
+.gv-text{margin-top:6px;font-size:14px;}
+
+.grow-rules{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+.grow-rule{width:100%;text-align:start;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:10px 14px;}
+.gr-label{grid-column:1;grid-row:1;}
+.gr-value{grid-column:2;grid-row:1 / span 2;align-self:center;font-size:18px;font-weight:700;white-space:nowrap;}
+.gr-meaning{grid-column:1;grid-row:2;font-size:13px;line-height:1.45;color:var(--ink-muted);}
+.grow-rule[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+.grow-rule[aria-pressed="true"] .gr-label,.grow-rule[aria-pressed="true"] .gr-meaning{color:color-mix(in srgb,var(--paper) 78%,transparent);}
+
+/* existing guideline and checklist items that drive the drawing */
+.governs{cursor:pointer;transition:background .18s;}
+.governs:hover,.governs.governs-on{background:color-mix(in srgb,var(--nahal-500) 12%,transparent);}
+.grow-hint{font-size:13px;color:var(--ink-muted);margin:0 0 6px;}
+
+@media (max-width:980px){
+  .grow{grid-template-columns:minmax(0,1fr);}
+}
+@media (max-width:640px){
+  .grow-pair{grid-template-columns:minmax(0,1fr);}
+  .grow-pair .grow-compact,.grow-pair #basicChecklist{grid-column:1;grid-row:auto;position:static;}
+  .grow-svg .gl{font-size:2.3px;stroke-width:.6px;}
+  .grow-svg .gl-add{font-size:2.5px;}
+  .grow-svg .gl-quiet,.grow-svg .gl-on-face{display:none;}
+  .grow-svg .gl-step{font-size:1.8px;}
+  .grow-chip{min-width:0;flex:1 1 0;}
+  .grow-seg{width:100%;}
+  .grow-seg .gc-label{width:100%;}
+  .grow-range{width:100%;}
+  .grow-range input{flex:1 1 auto;width:auto;min-width:0;}
+  .grow-svg{max-height:none;}
+  .gr-value{font-size:16px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .grow-chip,.grow-rule,.grow-svg polygon,.grow-svg line,.grow-svg .gl{transition:none;}
+}
+.grow-compact .grow-svg .gl{font-size:2.3px;stroke-width:.6px;}
+.grow-compact .grow-svg .gl-quiet,.grow-compact .grow-svg .gl-on-face,.grow-compact .grow-svg .gl-bal{display:none;}
