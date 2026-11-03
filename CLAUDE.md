@@ -17,6 +17,7 @@ Deployed on Vercel from `main`. Merging a PR into `main` updates the live addres
 - `index.html` — markup: fixed top bar, landing page, app shell with all pages as hidden `.page` sections, modals.
 - `css/app.css` — Ashdod municipality design system (paper/ink, sea, dune, nahal, port), Rubik + IBM Plex Mono, motion layer, dark mode.
 - `js/app.js` — all application logic (roles, navigation, forms, requests, map, documents, reviewer auth).
+- `js/grow.js`, `css/grow.css` — "הבית שגדל" (03.11.2026): axonometric SVG at the top of הנחיות and beside the basic checklist. The permitted addition (green) grows floor by floor out of the rear facade; setback lines are dashed planes with their numbers (3/4 m side and rear, 0 m front). Each rule button, guideline item and basic checklist item (`data-governs`, linked by `data-edit-key` / `data-check-id`) highlights the part it governs. Numbers only from the plan PDF (`PLAN` in grow.js); addition depth is an illustration.
 - `js/shell.js` — top bar: the A&I logo button items (`syncAIMenu`: content editing for the city architect, theme, sign-out), toasts, scroll reveal, service worker registration.
 - `manifest.webmanifest`, `sw.js`, `icons/` — installable PWA. `assets/logo-ashdod.png` — municipality logo (on white only).
 - `docs/plan-instructions.pdf` — plan instructions served as a static file and referenced from `rz_documents_content.files`.
