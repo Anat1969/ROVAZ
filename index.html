@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/grow.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </head>
@@ -232,6 +233,11 @@
 
   <!-- ===== INSTRUCTIONS ===== -->
   <div id="submitterInstructions" class="page">
+    <div class="card grow-card">
+      <h2>הבית שגדל</h2>
+      <p class="grow-lead"><strong>מה מותר להוסיף לדירה, על הבניין עצמו.</strong>הנפח הירוק הוא התוספת שהתוכנית מתירה, והמישורים המקווקווים הם קווי הבניין. בחירה בכלל, כאן או ברשימות שלמטה, מדגישה בשרטוט את החלק שהוא קובע.</p>
+      <div class="grow" id="growHouse"></div>
+    </div>
     <div class="card">
       <h2 data-edit-key="instructionsTitle">הנחיות הגשת בקשה</h2>
       <div class="alert alert-info"><strong>חשוב:</strong> כל הבקשות להרחבת דירה ברובע ז׳ חייבות לעמוד בתנאים המפורטים בהוראות התוכנית.</div>
@@ -384,6 +390,9 @@
       <div class="alert alert-info">סמנו את הפריטים שמולאו. ניתן להמשיך גם אם לא הכל מולא — פריטים חסרים יתועדו בסיכום.</div>
 
       <h3 data-edit-key="basicRequirementsTitle">דרישות בסיסיות</h3>
+      <p class="grow-hint">מעבר על שלוש הדרישות הבסיסיות מדגיש בשרטוט את החלק בבניין שהן קובעות.</p>
+      <div class="grow-pair">
+      <div class="grow grow-compact" id="growHouseMini"></div>
       <ul class="checklist" id="basicChecklist" data-edit-list>
         <li class="checklist-item" data-check-id="check1">
           <div class="item-row"><input type="checkbox" id="check1"><label for="check1">הדירה בבנייה רוויה (4+ יחידות, לפחות 2 קומות)</label></div>
@@ -398,6 +407,7 @@
           <input type="text" class="checklist-note-input" data-note-for="check3" placeholder="הערה...">
         </li>
       </ul>
+      </div>
 
       <h3 data-edit-key="documentRequirementsTitle">מסמכים נדרשים</h3>
       <ul class="checklist" id="documentChecklist" data-edit-list>
@@ -637,5 +647,6 @@
 
 <script src="js/app.js"></script>
 <script src="js/shell.js"></script>
+<script src="js/grow.js"></script>
 </body>
 </html>
